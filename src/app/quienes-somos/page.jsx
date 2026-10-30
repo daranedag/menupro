@@ -114,7 +114,7 @@ export default function Page() { return <MarketingLayout><div className="legacy-
 
         <div className="grid md:grid-cols-3 gap-6 mt-12">
           <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[var(--color-accent)] text-white flex items-center justify-center text-2xl font-bold">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[var(--marketing-button)] text-white flex items-center justify-center text-2xl font-bold">
               1
             </div>
             <h3 className="font-semibold mb-2">Conversamos</h3>
@@ -124,7 +124,7 @@ export default function Page() { return <MarketingLayout><div className="legacy-
           </div>
 
           <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[var(--color-accent)] text-white flex items-center justify-center text-2xl font-bold">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[var(--marketing-button)] text-white flex items-center justify-center text-2xl font-bold">
               2
             </div>
             <h3 className="font-semibold mb-2">Implementamos</h3>
@@ -134,7 +134,7 @@ export default function Page() { return <MarketingLayout><div className="legacy-
           </div>
 
           <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[var(--color-accent)] text-white flex items-center justify-center text-2xl font-bold">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[var(--marketing-button)] text-white flex items-center justify-center text-2xl font-bold">
               3
             </div>
             <h3 className="font-semibold mb-2">Acompañamos</h3>
@@ -168,17 +168,17 @@ export default function Page() { return <MarketingLayout><div className="legacy-
           <div className="flex flex-wrap justify-center gap-3 text-sm">
             <a 
               href="/menu-digital-restaurantes-valdivia"
-              className="px-4 py-2 rounded-lg bg-white dark:bg-neutral-900 border border-default hover:bg-[var(--color-bg-soft)] transition"
+              className="px-4 py-2 rounded-lg bg-[var(--color-bg)] border border-default hover:bg-[var(--color-bg-soft)] transition"
             >
               📍 Valdivia
             </a>
             <a 
               href="/menu-digital-restaurantes-santiago"
-              className="px-4 py-2 rounded-lg bg-white dark:bg-neutral-900 border border-default hover:bg-[var(--color-bg-soft)] transition"
+              className="px-4 py-2 rounded-lg bg-[var(--color-bg)] border border-default hover:bg-[var(--color-bg-soft)] transition"
             >
               📍 Santiago
             </a>
-            <span className="px-4 py-2 rounded-lg bg-white dark:bg-neutral-900 border border-default opacity-60">
+            <span className="px-4 py-2 rounded-lg bg-[var(--color-bg)] border border-default opacity-60">
               📍 Más ciudades en camino
             </span>
           </div>
@@ -202,7 +202,7 @@ export default function Page() { return <MarketingLayout><div className="legacy-
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <a
             href="https://wa.me/56967603803"
-            className="px-8 py-4 rounded-xl font-medium bg-[var(--color-accent)] text-white hover:opacity-90 transition"
+            className="px-8 py-4 rounded-xl font-medium bg-[var(--marketing-button)] text-white hover:opacity-90 transition"
           >
             Hablar con nosotros
           </a>

@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:where(.dark, .dark *, html[data-marketing-theme="dark"] .marketing-site, html[data-marketing-theme="dark"] .marketing-site *));
 
 :root { --color-bg-soft: #f8fafc; --color-text: #0f172a; --color-accent: #4f46e5; }
 body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #0f172a; background: white; }
@@ -11,3 +11,51 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid 
 .border-default { border-color: #e2e8f0; }
 .btn-primary { color: white; background: #4f46e5; }
 .legacy-content h1, .legacy-content h2, .legacy-content h3 { color: #0f172a; }
+
+/* Astro's landing palette stays local to marketing; the panel owns its theme. */
+.marketing-site {
+  --color-bg: #ffffff;
+  --color-bg-soft: #f6f7f5;
+  --color-text: #1a1a1a;
+  --color-text-muted: #6b7280;
+  --color-border: #e5e7eb;
+  --color-accent: #3f6b5b;
+  --color-accent-hover: #355c4f;
+  --color-accent-soft: #e6efec;
+  --marketing-button: #3f6b5b;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color-scheme: light;
+}
+html[data-marketing-theme="dark"] .marketing-site {
+  --color-bg: #0f1211;
+  --color-bg-soft: #161a18;
+  --color-text: #e5e7eb;
+  --color-text-muted: #adb5b0;
+  --color-border: #343e38;
+  --color-accent: #91c7ae;
+  --color-accent-soft: #1d3229;
+  color-scheme: dark;
+}
+.marketing-site .text-muted { color: var(--color-text-muted); }
+.marketing-site .border-default { border-color: var(--color-border); }
+.marketing-site .btn-primary { background: var(--marketing-button); color: white; }
+.marketing-site .btn-primary:hover { background: var(--color-accent-hover); }
+.marketing-site .legacy-content :is(h1, h2, h3) { color: inherit; }
+.marketing-site :is(a, button, input, textarea, select):focus-visible { outline-color: var(--color-accent); }
+.marketing-theme-sun { display: none; }
+.marketing-hero-glow { opacity: 0.35; }
+html[data-marketing-theme="dark"] .marketing-hero-glow { opacity: 0.16; }
+html[data-marketing-theme="dark"] .marketing-theme-sun { display: inline; }
+html[data-marketing-theme="dark"] .marketing-theme-moon { display: none; }
+.marketing-hero-title { animation: marketing-fade-in 700ms ease-out both; }
+@keyframes marketing-fade-in {
+  from { opacity: 0; transform: translateY(1rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marketing-hero-title { animation: none; }
+  .marketing-site *, .marketing-site *::before, .marketing-site *::after { transition-duration: 0s !important; }
+}
