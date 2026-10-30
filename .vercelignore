@@ -1,0 +1,7 @@
+.insforge
+.agents
+.env*
+artifacts
+test-results
+playwright-report
+tests

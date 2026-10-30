@@ -1,0 +1,61 @@
+import { test, expect, request as createRequest } from '@playwright/test';
+
+// Run ONLY against the isolated backend branch with email verification disabled.
+test('BFF persists CRUD, controls publication, and isolates restaurant owners', async () => {
+  const a = await createRequest.newContext({ baseURL: 'http://localhost:3000' });
+  const b = await createRequest.newContext({ baseURL: 'http://localhost:3000' });
+  const anon = await createRequest.newContext({ baseURL: 'http://localhost:3000' });
+  const suffix = Date.now();
+  let response = await anon.get('/api/restaurants');
+  expect(response.status()).toBe(401);
+  response = await anon.post('/api/auth/register', { data: { email: 'blocked@example.invalid', password: 'TestPass123!', role: 'platform_admin' } });
+  expect(response.status()).toBe(400);
+  for (const [context, owner] of [[a, 'a'], [b, 'b']] as const) {
+    response = await context.post('/api/auth/register', { data: { email: 'menupro-test-' + owner + '-' + suffix + '@example.invalid', password: 'MenuProTest123!' } });
+    expect(response.status(), await response.text()).toBe(200);
+    const data = await response.json();
+    expect(data.data.user.id).toBeTruthy();
+    expect(response.headersArray().filter(header => header.name.toLowerCase() === 'set-cookie').some(header => header.value.includes('HttpOnly'))).toBeTruthy();
+  }
+  response = await a.post('/api/restaurants', { data: { name: 'Prueba MenuPro ' + suffix } });
+  expect(response.status(), await response.text()).toBe(201);
+  const restaurant = (await response.json()).data;
+  response = await a.post('/api/menus', { data: { restaurant_id: restaurant.id, name: 'Almuerzo' } });
+  expect(response.status(), await response.text()).toBe(201);
+  const menu = (await response.json()).data;
+  response = await a.post('/api/menus/' + menu.id + '/sections', { data: { name: 'Entradas', order_index: 0 } });
+  expect(response.status(), await response.text()).toBe(201);
+  const section = (await response.json()).data;
+  response = await a.post('/api/sections/' + section.id + '/items', { data: { name: 'Sopa', price: 3500, order_index: 0 } });
+  expect(response.status(), await response.text()).toBe(201);
+  const item = (await response.json()).data;
+  const publicPath = '/api/menus/public/' + restaurant.slug + '/' + menu.slug;
+  expect((await anon.get(publicPath)).status()).toBe(404);
+  expect((await b.patch('/api/menus/' + menu.id, { data: { name: 'Intruso' } })).status()).toBe(404);
+  expect((await b.patch('/api/items/' + item.id, { data: { price: 1 } })).status()).toBe(404);
+  expect((await b.delete('/api/sections/' + section.id)).status()).toBe(404);
+  response = await a.patch('/api/items/' + item.id, { data: { price: 4500, description: 'Actualizada' } });
+  expect(response.status(), await response.text()).toBe(200);
+  response = await a.patch('/api/menus/' + menu.id + '/publish', { data: { publish: true } });
+  expect(response.status(), await response.text()).toBe(200);
+  const published = (await (await anon.get(publicPath)).json()).data;
+  expect(published.menu.sections[0].items[0].price).toBe(4500);
+  expect(published.restaurant.owner_id).toBeUndefined();
+  response = await a.patch('/api/sections/' + section.id + '/items/reorder', { data: { ids: [item.id] } });
+  expect(response.status(), await response.text()).toBe(200);
+  response = await b.patch('/api/sections/' + section.id + '/items/reorder', { data: { ids: [item.id] } });
+  expect(response.status()).toBe(403);
+  response = await a.patch('/api/menus/' + menu.id, { data: { isVisible: false } });
+  expect(response.status()).toBe(200);
+  expect((await anon.get(publicPath)).status()).toBe(404);
+  response = await a.patch('/api/items/' + item.id, { headers: { origin: 'https://another-site.invalid' }, data: { price: 1 } });
+  expect(response.status()).toBe(403);
+  expect((await a.delete('/api/items/' + item.id)).status()).toBe(200);
+  expect((await a.delete('/api/sections/' + section.id)).status()).toBe(200);
+  response = await a.get('/api/menus/' + menu.id);
+  expect((await response.json()).data.sections).toHaveLength(0);
+  expect((await a.delete('/api/menus/' + menu.id)).status()).toBe(200);
+  expect((await a.post('/api/auth/logout')).status()).toBe(200);
+  expect((await a.get('/api/restaurants')).status()).toBe(401);
+  await Promise.all([a.dispose(), b.dispose(), anon.dispose()]);
+});

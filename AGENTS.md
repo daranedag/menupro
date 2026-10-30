@@ -1,0 +1,31 @@
+# AGENTS.md
+
+## MenuPro conventions
+
+- Use pnpm exclusively for dependencies, scripts, and package execution. Never use npm, npx, yarn, or Bun.
+- This directory is the single Next.js application: landing, panel, and BFF.
+- Every application table, view, function, index, and policy must use the `menupro_` prefix. Do not change unrelated objects in DieGui Dev.
+- Use user-scoped InsForge clients and RLS. Keep all credentials in ignored local configuration.
+- Keep SQL migrations under `migrations/` and apply them with `pnpm db:migrate`.
+- Read version-matched Next.js documentation under `node_modules/next/dist/docs/` before changing framework behavior.
+
+<!-- INSFORGE:START -->
+## InsForge backend
+
+This project uses [InsForge](https://insforge.dev): an all-in-one, open-source Postgres-based backend (BaaS) that gives this app a database, authentication, file storage, edge functions, realtime, an AI model gateway, and payments through one platform.
+
+- **Project:** **DieGui Dev** (API base `https://556adz76.us-east.insforge.app`)
+- **Skills:** these InsForge skills are installed for supported coding agents. Reach for them before implementing any InsForge feature instead of guessing the API:
+  - `insforge`: app code with the `@insforge/sdk` client (database CRUD, auth, storage, edge functions, realtime, AI, email, and Stripe payments).
+  - `insforge-cli`: backend and infrastructure via the `insforge` CLI (projects, SQL, migrations, RLS policies, storage buckets, functions, secrets, payment setup, schedules, deploys).
+  - `insforge-debug`: diagnosing failures (SDK/HTTP errors, RLS denials, auth and OAuth issues) and running security or performance audits.
+  - `insforge-integrations`: wiring external auth providers (Clerk, Auth0, WorkOS, Better Auth, etc.) for JWT-based RLS, or the OKX x402 payment facilitator.
+  - `find-skills`: discovering additional skills on demand.
+- **Credentials:** app code reads keys from `.env.local`; the CLI reads `.insforge/project.json`. Never hardcode or commit keys.
+
+Key patterns:
+
+- Database inserts take an array: `insert([{ ... }])`.
+- Reference users with `auth.users(id)`; use `auth.uid()` in RLS policies.
+- For storage uploads, persist both the returned `url` and `key`.
+<!-- INSFORGE:END -->

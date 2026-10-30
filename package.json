@@ -1,0 +1,48 @@
+{
+  "name": "menupro",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.1.2",
+  "engines": { "node": ">=22.13.0", "pnpm": ">=11" },
+  "scripts": {
+    "preinstall": "node scripts/require-pnpm.mjs",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.mjs",
+    "db:status": "insforge db migrations list",
+    "db:migrate": "insforge db migrations up --all",
+    "db:new": "insforge db migrations new"
+  },
+  "dependencies": {
+    "next": "16.4.3",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "@insforge/sdk": "1.5.2",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "axios": "^1.13.2",
+    "clsx": "^2.1.1",
+    "html2canvas": "^1.4.1",
+    "i18next": "^25.7.3",
+    "jspdf": "^3.0.4",
+    "lucide-react": "^0.562.0",
+    "qrcode.react": "^4.2.0",
+    "react-i18next": "^16.5.0",
+    "server-only": "^0.0.1",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@insforge/cli": "0.2.8",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.0",
+    "@playwright/test": "^1.58.0"
+  }
+}

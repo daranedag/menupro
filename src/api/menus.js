@@ -1,0 +1,15 @@
+import { api } from './client';
+export const fetchMenusByRestaurant = id => api.get(`/api/menus/restaurant/${id}`);
+export const createMenu = data => api.post('/api/menus', data);
+export const updateMenu = (id, data) => api.patch(`/api/menus/${id}`, data);
+export const deleteMenu = id => api.delete(`/api/menus/${id}`);
+export const publishMenu = (id, data) => api.patch(`/api/menus/${id}/publish`, data);
+export const fetchPublicMenu = (restaurant, menu) => api.get(`/api/menus/public/${encodeURIComponent(restaurant)}/${encodeURIComponent(menu)}`);
+export const createSection = (id, data) => api.post(`/api/menus/${id}/sections`, data);
+export const updateSection = (id, data) => api.patch(`/api/sections/${id}`, data);
+export const deleteSection = id => api.delete(`/api/sections/${id}`);
+export const createDish = (id, data) => api.post(`/api/sections/${id}/items`, data);
+export const updateDish = (id, data) => api.patch(`/api/items/${id}`, data);
+export const deleteDish = id => api.delete(`/api/items/${id}`);
+export const reorderSectionsApi = (id, sections) => api.patch(`/api/menus/${id}/sections/reorder`, { ids: sections.map(section => section.id) });
+export const reorderSectionItems = (id, items) => api.patch(`/api/sections/${id}/items/reorder`, { ids: items.map(item => item.id) });

@@ -1,0 +1,29 @@
+
+# InsForge & AI agent skills
+.insforge
+.agent
+.agents
+.augment
+.claude
+.cline
+.github/copilot*
+.kilocode
+.qoder
+.qwen
+.roo
+.trae
+.windsurf
+
+# Local configuration and generated files
+.env
+.env.local
+.env*.local
+node_modules/
+.next/
+out/
+dist/
+*.tsbuildinfo
+playwright-report/
+test-results/
+.vercel/
+artifacts/
