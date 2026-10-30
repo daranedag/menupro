@@ -16,7 +16,7 @@ Abre `http://localhost:3000`. La configuración local está en `.env.local` y no
 ## Funcionalidad básica
 
 - Landing con acceso al panel desde escritorio y móvil.
-- Registro, verificación por correo, login, renovación de sesión y logout con InsForge.
+- Registro e inicio de sesión con Google o correo, verificación por correo, renovación de sesión y logout con InsForge.
 - Restaurantes y selección del restaurante activo.
 - Crear, editar y eliminar cartas, secciones y platos; ordenar secciones y platos.
 - Publicar/despublicar y pausar/ocultar contenido.
@@ -60,11 +60,22 @@ MenuPro comienza vacío por decisión del propietario. No se trasladan usuarios 
 
 El MCP oficial de InsForge está registrado en la configuración local de Codex para DieGui Dev y se ejecuta con `pnpm dlx @insforge/mcp@1.2.11`. Es posible que Codex necesite recargar la conexión MCP para mostrar sus herramientas. No se guardan sus claves en el repositorio.
 
+## Acceso con Google
+
+El botón **Continuar con Google** está disponible tanto en login como en registro. InsForge crea la cuenta en el primer acceso y reutiliza su identidad en los siguientes. Next inicia OAuth desde `POST /api/auth/google`, guarda el verificador PKCE en una cookie HttpOnly de diez minutos y recibe el retorno en `GET /api/auth/callback`. El SDK intercambia el código en el servidor y establece la sesión, manteniendo el token de renovación en una cookie HttpOnly. El destino final es `/app/dashboard`.
+
+Google ya está habilitado en DieGui Dev. Actualmente usa el proveedor compartido de InsForge: su pantalla de Google muestra **InstaCloud**. Para mostrar **MenuPro**, configura un cliente OAuth propio en **Auth Methods → Google** de InsForge y utiliza la dirección de callback que indique el dashboard de InsForge. No uses el callback de Next como callback de Google: Next recibe el retorno posterior de InsForge.
+
+Configura `APP_URL` con el origen exacto de la aplicación (`http://localhost:3000` en desarrollo). En producción, autoriza `<APP_URL>/api/auth/callback` en las direcciones de retorno de InsForge, conservando las direcciones que utilicen otras aplicaciones del backend compartido. No se necesitan un ID ni un secreto de Google en el frontend o en las variables de Next.
+
+Las cuentas nuevas de MenuPro toman el nombre del perfil de Google; los nombres ya guardados por el usuario se conservan. Si se cancela el acceso, falta el verificador o el código no es válido, se limpia la cookie temporal y se vuelve al login con un mensaje para reintentar.
+
 ## Verificación
 
 ```sh
 pnpm typecheck
 pnpm test
+pnpm test:auth
 pnpm run build
 ```
 
@@ -73,6 +84,8 @@ Las pruebas de integración están en `tests/integration`. Crean cuentas tempora
 ```sh
 pnpm exec playwright test
 ```
+
+`pnpm test:auth` es una suite independiente: inicia Next en `http://localhost:3100` y un servicio InsForge simulado en `127.0.0.1:3101`. Comprueba el inicio, PKCE, cookies de sesión, perfil, cancelación, códigos inválidos y rechazo de solicitudes de otro origen; no usa Chrome ni crea usuarios reales. Detén otros servidores de desarrollo de este directorio antes de ejecutarla. La entrada completa con una cuenta de Google real se comprueba manualmente desde `/app/login`.
 
 ## Vercel
 

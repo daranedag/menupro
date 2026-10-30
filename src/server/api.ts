@@ -20,19 +20,21 @@ async function body(request: Request) {
   try { return JSON.parse(text); } catch { throw new HttpError('Datos JSON inválidos.'); }
 }
 
-async function session(client: Client, user: { id: string; email?: string }) {
+async function session(client: Client, user: { id: string; email?: string; profile?: Record<string, unknown> | null }) {
+  const defaultName = (typeof user.profile?.name === 'string' && user.profile.name.trim())
+    || user.email?.split('@')[0] || '';
   const { data: restaurants, error } = await client.database.from('menupro_restaurants')
     .select(restaurantColumns).eq('owner_id', user.id).order('created_at').limit(100);
   check(error);
   const profile = await client.database.from('menupro_profiles').select('id,name').eq('id', user.id).maybeSingle();
   check(profile.error);
   if (!profile.data) {
-    const inserted = await client.database.from('menupro_profiles').insert([{ id: user.id, name: user.email?.split('@')[0] ?? '' }]);
+    const inserted = await client.database.from('menupro_profiles').insert([{ id: user.id, name: defaultName }]);
     if (inserted.error?.code !== '23505') check(inserted.error);
   }
   const selected = (await cookies()).get('menupro_restaurant')?.value;
   const activeRestaurant = restaurants?.find(restaurant => restaurant.id === selected) ?? restaurants?.[0];
-  return { id: user.id, email: user.email, name: profile.data?.name ?? user.email?.split('@')[0], role: 'restaurant_owner',
+  return { id: user.id, email: user.email, name: profile.data?.name ?? defaultName, role: 'restaurant_owner',
     restaurants: restaurants ?? [], activeRestaurantId: activeRestaurant?.id, activeRestaurantName: activeRestaurant?.name,
     activeRestaurantSlug: activeRestaurant?.slug, subscriptionTier: 'Básico', maxRestaurants: null };
 }
