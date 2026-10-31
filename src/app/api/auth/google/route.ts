@@ -3,10 +3,12 @@ import { type NextRequest } from 'next/server';
 import { createAuthActions } from '@insforge/sdk/ssr';
 import { appUrl, GOOGLE_VERIFIER_COOKIE, googleVerifierOptions } from '@/server/google-auth';
 import { assertSameOrigin, fail, HttpError, respond } from '@/server/http';
+import { enforceRequestLimit } from '@/server/security';
 
 export async function POST(request: NextRequest) {
   try {
     assertSameOrigin(request);
+    await enforceRequestLimit(request, 'auth_google', 60);
     const cookieStore = await cookies();
     const auth = createAuthActions({ cookies: cookieStore });
     const { data, error } = await auth.signInWithOAuth('google', {

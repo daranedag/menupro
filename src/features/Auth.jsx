@@ -198,7 +198,7 @@ function Auth() {
                 onChange={handleChange}
                 required
                 icon="🔒"
-                helperText={!isLogin ? "Mínimo 6 caracteres" : ""}
+                helperText={!isLogin ? "Mínimo 8 caracteres" : ""}
                 forceLight
               />
 
@@ -228,7 +228,7 @@ function Auth() {
             </div>
 
             {isLogin && (
-              <p className="mt-4 text-center text-xs text-slate-500">Acceso seguro a tu panel de cartas digitales.</p>
+              <p className="mt-4 text-center text-sm"><Link href="/app/recover" className="text-indigo-700 underline">Olvidé mi contraseña</Link></p>
             )}
           </div>
         </div>

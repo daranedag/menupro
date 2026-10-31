@@ -27,12 +27,14 @@ export function AuthProvider({ children }) {
     setUser(data.user); return data.user;
   };
   const createRestaurant = async input => {
-    const payload = { name: input.name, ...(input.slug ? { slug: input.slug } : {}) };
+    const payload = { name: input.name, ...(input.slug ? { slug: input.slug } : {}),
+      ...(input.phone !== undefined ? { phone: input.phone, address: input.address, city: input.city, unit: input.unit, no_physical_location: input.no_physical_location } : {}) };
     const { data } = await api.post('/api/restaurants', payload);
     await api.post('/api/auth/restaurant', { id: data.id });
     await loadSession(); return data;
   };
   const selectRestaurant = async id => { await api.post('/api/auth/restaurant', { id }); await loadSession(); };
+  const selectBusiness = async id => { await api.post('/api/business/select', { id }); await loadSession(); };
   const logout = async () => { await api.post('/api/auth/logout'); setUser(null); };
-  return <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, register, createRestaurant, selectRestaurant, logout, reloadSession: loadSession }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, register, createRestaurant, selectRestaurant, selectBusiness, logout, reloadSession: loadSession }}>{children}</AuthContext.Provider>;
 }

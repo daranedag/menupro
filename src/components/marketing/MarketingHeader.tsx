@@ -9,8 +9,9 @@ import ThemeToggle from './ThemeToggle';
 const links = [
   { href: '/', label: 'Inicio' },
   { href: '/quienes-somos', label: 'Quiénes Somos' },
+  { href: '/precios', label: 'Planes y precios' },
   { href: '/contacto', label: 'Contacto' },
-  { href: '/app/login', label: 'Login' },
+  { href: '/app/login', label: 'Iniciar sesión' },
 ];
 
 export default function MarketingHeader() {

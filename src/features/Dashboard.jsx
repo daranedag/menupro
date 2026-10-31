@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { Card, Spinner, Input, Button, Badge } from '../components/ui';
 import { BookOpen, FolderOpen, UtensilsCrossed, Plus, List, Eye } from 'lucide-react';
+import TrialOnboarding from '@/components/business/TrialOnboarding';
 
 function DashboardHome() {
   const { menus, isLoading, error } = useMenu();
@@ -27,7 +28,7 @@ function DashboardHome() {
     acc + (menu.sections?.length || 0), 0
   );
 
-  const restaurantsCount = user?.restaurants?.length ?? 0;
+  const restaurantsCount = user?.restaurants?.filter(restaurant => !restaurant.archived_at).length ?? 0;
   const maxRestaurants =
     user?.maxRestaurants ??
     user?.tierLimits?.maxRestaurants ??
@@ -36,7 +37,7 @@ function DashboardHome() {
     null;
   const hasRestaurantsLimit = maxRestaurants !== null && maxRestaurants !== undefined;
   const canCreateRestaurant =
-    user?.role === 'restaurant_owner' && (!hasRestaurantsLimit || restaurantsCount < Number(maxRestaurants));
+    ['owner', 'manager'].includes(user?.businessRole) && user?.subscription?.has_access && (!hasRestaurantsLimit || restaurantsCount < Number(maxRestaurants));
 
   const handleCreateRestaurant = async (event) => {
     event.preventDefault();
@@ -67,6 +68,9 @@ function DashboardHome() {
     }
   };
 
+  if (user?.subscription && !user.subscription.has_access && ['unstarted', 'review'].includes(user.subscription.effective_status)) {
+    return <DashboardLayout><TrialOnboarding key={user.businessId} /></DashboardLayout>;
+  }
   return (
     <DashboardLayout>
       <div>
@@ -215,7 +219,7 @@ function DashboardHome() {
           </Card>
         </div>
 
-        {user?.role === 'restaurant_owner' && (
+        {['owner', 'manager'].includes(user?.businessRole) && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             <Card title="Restaurantes" subtitle="Gestiona tus ubicaciones">
               <div className="space-y-4">

@@ -1,24 +1,34 @@
 import { test, expect } from '@playwright/test';
+import { query } from '../helpers/backend';
 
 test('landing links, mobile login, and the menu editor work in the browser', async ({ page, browser }) => {
+  test.setTimeout(180000);
   const failures: string[] = [];
   page.on('pageerror', error => failures.push(error.message));
   await page.goto('/');
   await expect(page.getByRole('heading', { name: /Tu carta digital/ })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Iniciar sesión' })).toHaveAttribute('href', '/app/login');
-  await page.screenshot({ path: 'artifacts/landing-desktop.png', fullPage: true });
+  await page.screenshot({ path: 'artifacts/landing-desktop.png', fullPage: true, animations: 'disabled', timeout: 15000 });
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Abrir menú', exact: true }).click();
   await expect(page.getByRole('link', { name: 'Iniciar sesión' })).toBeVisible();
-  await page.screenshot({ path: 'artifacts/landing-mobile.png', fullPage: true });
+  await page.screenshot({ path: 'artifacts/landing-mobile.png', fullPage: true, animations: 'disabled', timeout: 15000 });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/app/login?register=true');
   await page.getByLabel('Email').fill('menupro-ui-' + Date.now() + '@example.invalid');
   await page.getByLabel('Contraseña').fill('MenuProTest123!');
   await page.getByRole('button', { name: 'Crear cuenta', exact: true }).click();
   await expect(page).toHaveURL('/app/dashboard');
+  const signedIn = await page.request.get('/api/auth/session');
+  const signedUser = (await signedIn.json()).data.user;
+  query(`UPDATE auth.users SET email_verified=true WHERE id='${signedUser.id}'`);
   const restaurantName = 'Restaurante UI ' + Date.now();
   await page.getByLabel('Nombre del restaurante').fill(restaurantName);
-  await page.getByRole('button', { name: 'Crear restaurante', exact: true }).click();
+  await page.getByLabel('Teléfono del negocio').fill('+569' + String(Date.now()).slice(-8));
+  await page.getByLabel(/^Dirección/).fill('Dirección de prueba ' + Date.now());
+  await page.getByLabel(/^Comuna/).fill('Santiago');
+  await page.getByRole('checkbox', { name: /Acepto los/ }).check();
+  await page.getByRole('button', { name: 'Activar demo gratis', exact: true }).click();
   await expect(page.getByText(restaurantName, { exact: true })).toBeVisible();
   await page.goto('/app/dashboard/menus/new');
   await page.getByLabel('Nombre de la Carta').fill('Carta de prueba UI');
@@ -47,8 +57,8 @@ test('landing links, mobile login, and the menu editor work in the browser', asy
   await publicPage.goto(publicUrl);
   await expect(publicPage.getByRole('heading', { name: 'Página no encontrada' })).toBeVisible();
   await page.goto('/app/dashboard/menus');
-  await page.getByRole('button', { name: 'Publicar', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Publicado', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Publicar Carta de prueba UI', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Despublicar Carta de prueba UI', exact: true })).toBeVisible();
   await publicPage.goto(publicUrl);
   await expect(publicPage.getByText('Ensalada de la casa', { exact: true })).toBeVisible();
   await publicPage.screenshot({ path: 'artifacts/public-menu.png', fullPage: true });

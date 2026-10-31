@@ -9,7 +9,7 @@ export default function Page() { return <MarketingLayout><div className="legacy-
           Política de Privacidad
         </h1>
         <p className="text-xl text-muted">
-          Última actualización: Diciembre 2025
+          Última actualización: 31 de octubre de 2026
         </p>
       
     </div>
@@ -164,5 +164,14 @@ export default function Page() { return <MarketingLayout><div className="legacy-
       
 
     </div>
+  </section>
+  <section className="mx-auto max-w-4xl space-y-5 px-6 py-12" aria-labelledby="business-privacy">
+    <h2 id="business-privacy" className="text-2xl font-semibold">Cuentas de negocio, pagos y prevención de abuso</h2>
+    <p>Para administrar tu negocio y activar una demo recopilamos nombre comercial, teléfono, dirección, comuna y unidad del local cuando corresponda. Los negocios sin atención presencial pueden indicarlo. Los integrantes invitados utilizan sus propias cuentas y permisos; una coincidencia entre restaurantes no concede acceso ni revela el correo de sus administradores.</p>
+    <p>Comparamos señales de los restaurantes para detectar solicitudes repetidas de demos o descuentos. Las coincidencias relevantes se revisan antes de rechazar una solicitud. No bloqueamos automáticamente un negocio por compartir solamente nombre, IP, dispositivo, teléfono o RUT con otro.</p>
+    <p>Las señales mínimas contra abuso se conservan separadas del contenido durante 24 meses desde la última actividad del negocio. Este registro utiliza representaciones criptográficas de los datos normalizados; no debe considerarse información anónima. Borrar cartas o cambiar de correo no reinicia los beneficios mientras exista ese historial.</p>
+    <p>El contenido de las cartas se conserva durante 180 días desde el término del acceso y se avisa al menos 30 días antes de eliminarlo. Puedes descargar tus datos desde el panel. Los documentos de cobro y registros necesarios para atender pagos, devoluciones o controversias se conservan separadamente conforme a sus obligaciones aplicables.</p>
+    <p>Mercado Pago procesa la autorización y los cobros de suscripción. MenuPro guarda referencias, importes, estados y períodos del servicio; los datos completos de tu tarjeta se ingresan en Mercado Pago. Los avisos de demo, cuenta y pagos se muestran en el panel y pueden enviarse por correo.</p>
+    <p>Para solicitar acceso, rectificación o revisión de una coincidencia, utiliza nuestra página de contacto. Se limita la frecuencia de solicitudes para proteger el registro y el acceso.</p>
   </section>
 </div></MarketingLayout>; }

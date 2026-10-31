@@ -24,7 +24,9 @@ Abre `http://localhost:3000`. La configuración local está en `.env.local` y no
 - Vista previa privada, exportación PDF del editor existente y apariencia guardada en el restaurante.
 - Páginas públicas de contacto, información, privacidad y términos.
 
-La primera versión no incluye administración de planes, cobros ni facturación. No hay dependencias de Vite, Astro, Express, Bun ni del cliente de Supabase en la aplicación.
+La aplicación incluye cuentas de negocio con integrantes e invitaciones, planes Local/Grupo, demo de 15 días, revisión de registros repetidos, descuentos de bienvenida, controles de acceso por vigencia y administración de cortesías y pagos por transferencia. La integración de Mercado Pago está deshabilitada hasta configurar y verificar sus credenciales de prueba. No hay dependencias de Vite, Astro, Express, Bun ni del cliente de Supabase en la aplicación.
+
+Las reglas aprobadas están en `docs/reglas-de-negocio.md`. La operación y configuración comercial están en `docs/operacion-comercial.md`.
 
 ## Estructura
 
@@ -44,7 +46,7 @@ tests/          Pruebas de datos, permisos y navegador
 
 El destino es **DieGui Dev**. Todos los objetos propios usan el prefijo `menupro_`. La aplicación utiliza clientes con permisos del usuario y RLS; no necesita una clave administrativa en Vercel.
 
-Tablas: `menupro_profiles`, `menupro_restaurants`, `menupro_menus`, `menupro_menu_sections` y `menupro_menu_items`.
+El contenido usa `menupro_profiles`, `menupro_restaurants`, `menupro_menus`, `menupro_menu_sections` y `menupro_menu_items`. La propiedad y el acceso se resuelven con `menupro_businesses`, `menupro_memberships` y `menupro_subscriptions`; las tablas comerciales, invitaciones, registros contra abuso y auditoría también usan el prefijo `menupro_`.
 
 ```sh
 pnpm db:status
@@ -54,7 +56,7 @@ pnpm db:migrate
 
 La CLI lee `.insforge/project.json`, que contiene credenciales privadas y está ignorado. Verifica siempre el proyecto vinculado con `pnpm exec insforge current` antes de aplicar cambios. Para cambios de permisos o esquema sobre datos existentes, prueba primero en una rama del backend.
 
-La carta pública accede exclusivamente a `menupro_public_menu`, que devuelve contenido publicado y omite el identificador del propietario. Las operaciones de edición utilizan RLS y no permiten cambiar el propietario ni mover registros a otro restaurante mediante un PATCH.
+La carta pública accede exclusivamente a `menupro_public_menu`, que devuelve contenido publicado y omite el identificador del propietario. La vigencia y el cupo del restaurante se comprueban al consultar, incluso si el mantenimiento horario no se ejecutó. Las operaciones de edición utilizan RLS y no permiten cambiar la propiedad ni mover registros a otro restaurante mediante un PATCH. Las transferencias de propiedad se realizan atómicamente entre integrantes del negocio.
 
 MenuPro comienza vacío por decisión del propietario. No se trasladan usuarios ni datos del Supabase anterior; sus carpetas originales se conservan.
 
@@ -85,6 +87,10 @@ Las pruebas de integración están en `tests/integration`. Crean cuentas tempora
 pnpm exec playwright test
 ```
 
+Los helpers de pruebas verifican las identidades sintéticas en esa rama y preparan fechas o estados para comprobar vencimientos, pagos y retención. Sus controles rechazan el proyecto padre. No ejecutan cobros de Mercado Pago ni envían correos reales. Las pruebas de recuperación de contraseña utilizan un servicio local simulado.
+
+Se usa la alternativa oficial Webpack para desarrollo y compilación: el compilador Turbopack de esta versión falló al iniciar sus procesos auxiliares en el entorno Windows de validación.
+
 `pnpm test:auth` es una suite independiente: inicia Next en `http://localhost:3100` y un servicio InsForge simulado en `127.0.0.1:3101`. Comprueba el inicio, PKCE, cookies de sesión, perfil, cancelación, códigos inválidos y rechazo de solicitudes de otro origen; no usa Chrome ni crea usuarios reales. Detén otros servidores de desarrollo de este directorio antes de ejecutarla. La entrada completa con una cuenta de Google real se comprueba manualmente desde `/app/login`.
 
 ## Vercel
@@ -98,6 +104,11 @@ Configura estas variables en el proyecto de Vercel:
 | `NEXT_PUBLIC_INSFORGE_URL` | URL de DieGui Dev |
 | `NEXT_PUBLIC_INSFORGE_ANON_KEY` | Clave pública del mismo backend |
 | `APP_URL` | Origen público de la aplicación, sin rutas |
+| `MENUPRO_WORKER_SECRET` | Secreto aleatorio privado, vinculado a su hash en `menupro_system_keys` |
+| `MENUPRO_BILLING_MODE` | `disabled` inicialmente; `test` después de configurar Mercado Pago |
+| `MERCADOPAGO_ACCESS_TOKEN` | Credencial privada de la integración de Mercado Pago |
+| `MERCADOPAGO_WEBHOOK_SECRET` | Secreto de firma de las notificaciones de Mercado Pago |
+| `MENUPRO_EMAIL_ENABLED` | `false` hasta verificar el servicio de correos transaccionales |
 
 No subas `.env.local`, `.insforge` ni claves administrativas. Los previews también deben apuntar al backend elegido expresamente.
 

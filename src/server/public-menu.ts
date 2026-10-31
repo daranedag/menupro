@@ -7,5 +7,6 @@ export const getPublicMenu = cache(async (restaurantSlug: string, menuSlug: stri
   const client = createPublicInsForge();
   const { data, error } = await client.database.rpc('menupro_public_menu', { p_restaurant_slug: restaurantSlug, p_menu_slug: menuSlug });
   if (error) throw new Error('No se pudo cargar la carta.');
-  return data ? { restaurant: data.restaurant, menu: toMenu(data.menu) } : null;
+  return data ? (data.unavailable ? { unavailable: true as const, restaurant: null, menu: null }
+    : { unavailable: false as const, restaurant: data.restaurant, menu: toMenu(data.menu) }) : null;
 });

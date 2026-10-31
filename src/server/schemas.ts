@@ -9,6 +9,7 @@ function defined<T extends Record<string, unknown>>(data: T): T {
 export const credentials = z.object({ email: z.string().trim().email(), password: z.string().min(8).max(128), name: shortText.optional() }).strict();
 export const restaurantSchema = z.object({ name: shortText.min(1), slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(100).optional(),
   phone: shortText.optional(), address: shortText.optional(), city: shortText.optional(),
+  unit: shortText.optional(), no_physical_location: z.boolean().optional(),
   theme: z.object({ mode: z.enum(['light', 'dark']), colorPreset: shortText, fontPreset: shortText,
     colors: z.object({ primary: z.string().regex(/^#[a-fA-F0-9]{6}$/), secondary: z.string().regex(/^#[a-fA-F0-9]{6}$/), accent: z.string().regex(/^#[a-fA-F0-9]{6}$/) }),
     font: z.object({ name: shortText, fontFamily: shortText }) }).optional(),

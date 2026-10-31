@@ -6,7 +6,7 @@ api.interceptors.response.use(
   response => ({ ...response, data: response.data?.data ?? response.data }),
   error => {
     error.message = error.response?.data?.error ?? 'No se pudo conectar. Inténtalo nuevamente.';
-    if (error.response?.status === 401 && typeof window !== 'undefined' && !window.location.pathname.startsWith('/app/login')) {
+    if (error.response?.status === 401 && typeof window !== 'undefined' && window.location.pathname.startsWith('/app/dashboard') && error.config?.url !== '/api/auth/session') {
       window.location.assign('/app/login');
     }
     return Promise.reject(error);

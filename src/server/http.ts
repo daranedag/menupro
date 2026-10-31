@@ -29,5 +29,6 @@ export function check(error: { code?: string; message?: string } | null) {
   if (!error) return;
   if (error.code === '23505') throw new HttpError('Ya existe un registro con ese nombre o dirección.', 409);
   if (error.code === '42501') throw new HttpError('No tienes permiso para realizar esta operación.', 403);
+  if (error.code === 'P0001') throw new HttpError(error.message ?? 'No se pudo completar la operación.', 409);
   throw new Error(error.message ?? 'Database error');
 }

@@ -1,4 +1,5 @@
 import MarketingLayout from '@/components/MarketingLayout';
+import CommercialTerms from '@/components/business/CommercialTerms';
 export const metadata = { title: "Términos de uso" };
 export default function Page() { return <MarketingLayout><div className="legacy-content">
   
@@ -9,7 +10,7 @@ export default function Page() { return <MarketingLayout><div className="legacy-
           Términos de Uso
         </h1>
         <p className="text-xl text-muted">
-          Última actualización: Diciembre 2025
+          Última actualización: 31 de octubre de 2026
         </p>
       
     </div>
@@ -160,4 +161,5 @@ export default function Page() { return <MarketingLayout><div className="legacy-
 
     </div>
   </section>
+  <CommercialTerms />
 </div></MarketingLayout>; }

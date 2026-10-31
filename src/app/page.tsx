@@ -14,7 +14,7 @@ const features = [
   ['✏️', 'Editor simple', 'Agrega platos, edita precios y descripciones sin conocimientos técnicos.'],
   ['🔗', 'QR automático', 'Un código QR único para tu restaurante, listo para imprimir o compartir.'],
   ['🖨️', 'PDF imprimible', 'Genera una versión lista para imprimir cuando lo necesites.'],
-  ['🌎', 'Multi idioma', 'Muestra tu carta en distintos idiomas para turistas y clientes extranjeros.'],
+  ['🔎', 'Sin instalar aplicaciones', 'Tus clientes abren la carta directamente desde su navegador.'],
   ['📸', 'Fotos y descripciones', 'Presenta tus platos de forma clara y atractiva, sin saturar.'],
 ];
 const steps = [
@@ -49,8 +49,8 @@ export default function Home() {
           <p className="mb-8 max-w-xl text-base text-muted sm:text-lg">Crea, edita y comparte el menú de tu restaurante en minutos. Sin reimprimir, sin depender de terceros.</p>
           <div className="relative z-10 flex flex-col items-start gap-3">
             <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-              <Link href="/app/login" className="btn-primary inline-flex min-h-12 items-center justify-center gap-3 rounded-lg px-6 py-3 text-center font-semibold shadow-sm transition">Comenzar a usar <ArrowRight size={18} aria-hidden="true" /></Link>
-              <Link href="/contacto" className="inline-flex min-h-12 items-center justify-center rounded-lg border border-default px-6 py-3 text-center font-medium transition hover:bg-[var(--color-bg-soft)]">Solicitar demo</Link>
+              <Link href="/app/register" className="btn-primary inline-flex min-h-12 items-center justify-center gap-3 rounded-lg px-6 py-3 text-center font-semibold shadow-sm transition">Probar gratis 15 días <ArrowRight size={18} aria-hidden="true" /></Link>
+              <Link href="/precios" className="inline-flex min-h-12 items-center justify-center rounded-lg border border-default px-6 py-3 text-center font-medium transition hover:bg-[var(--color-bg-soft)]">Ver planes y precios</Link>
             </div>
             <a href="#features" className="inline-flex min-h-11 items-center gap-2 text-sm text-muted underline-offset-4 transition hover:text-[var(--color-text)] hover:underline">Ver cómo funciona <ArrowDown size={15} aria-hidden="true" /></a>
           </div>
@@ -90,18 +90,14 @@ export default function Home() {
     <section id="demo" className="bg-[var(--color-bg-soft)] px-6 py-12 md:py-16">
       <div className="mx-auto max-w-3xl">
         <div className="mb-12 text-center">
-          <h2 className="mb-4 text-3xl font-semibold tracking-tight md:text-4xl">Solicita una demo</h2>
-          <p className="text-muted">Déjanos tus datos y te contactamos para mostrarte MenuPro en acción.</p>
+          <h2 className="mb-4 text-3xl font-semibold tracking-tight md:text-4xl">Tu demo, lista para comenzar</h2>
+          <p className="text-muted">Regístrate, ingresa los datos de tu restaurante y activa 15 días gratis. Sin tarjeta.</p>
         </div>
-        <form method="POST" action="https://formspree.io/f/mwvejzrb" className="space-y-6 rounded-2xl border border-default bg-[var(--color-bg)] p-6 md:p-8">
-          <div><label htmlFor="demo-name" className="mb-1 block text-sm font-medium">Nombre</label><input id="demo-name" name="name" type="text" autoComplete="name" required className="w-full rounded-lg border border-default bg-transparent px-4 py-3" /></div>
-          <div><label htmlFor="demo-restaurant" className="mb-1 block text-sm font-medium">Restaurante</label><input id="demo-restaurant" name="restaurant" type="text" autoComplete="organization" required className="w-full rounded-lg border border-default bg-transparent px-4 py-3" /></div>
-          <div><label htmlFor="demo-email" className="mb-1 block text-sm font-medium">Email</label><input id="demo-email" name="email" type="email" autoComplete="email" required className="w-full rounded-lg border border-default bg-transparent px-4 py-3" /></div>
-          <div><label htmlFor="demo-whatsapp" className="mb-1 block text-sm font-medium">WhatsApp <span className="text-xs text-muted">(opcional)</span></label><input id="demo-whatsapp" name="whatsapp" type="tel" autoComplete="tel" placeholder="+56 9 1234 5678" className="w-full rounded-lg border border-default bg-transparent px-4 py-3" /></div>
-          <div><label htmlFor="demo-message" className="mb-1 block text-sm font-medium">Mensaje (opcional)</label><textarea id="demo-message" name="message" rows={4} placeholder="Cuéntanos qué tipo de restaurante tienes" className="w-full rounded-lg border border-default bg-transparent px-4 py-3" /></div>
-          <button type="submit" className="btn-primary w-full rounded-lg py-3 font-medium transition">Solicitar demo</button>
-          <p className="text-center text-xs text-muted">Te contactaremos dentro de las próximas 24 horas.</p>
-        </form>
+        <div className="space-y-5 rounded-2xl border border-default bg-[var(--color-bg)] p-6 text-center md:p-8">
+          <p>Prueba con tu carta y un QR real. Al contratar conservas todo lo creado y puedes acceder al descuento de bienvenida.</p>
+          <Link href="/app/register" className="btn-primary inline-flex rounded-lg px-6 py-3 font-semibold">Crear mi cuenta y probar</Link>
+          <p className="text-sm text-muted">Una demo por negocio. <Link href="/contacto" className="underline">También podemos acompañarte.</Link></p>
+        </div>
       </div>
     </section>
 

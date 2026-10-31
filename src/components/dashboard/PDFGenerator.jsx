@@ -2,8 +2,12 @@
 import { jsPDF } from 'jspdf';
 import { Button } from '../ui';
 import { FileDown } from 'lucide-react';
+import { useState } from 'react';
+import { api } from '@/api/client';
 
 export default function PDFGenerator({ menu }) {
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
   // Función para cargar imagen y convertir a base64
   const loadImage = (url) => {
     return new Promise((resolve, reject) => {
@@ -206,9 +210,14 @@ export default function PDFGenerator({ menu }) {
   };
 
   return (
-    <Button variant="outline" onClick={generatePDF}>
+    <><Button variant="outline" disabled={busy} onClick={async () => {
+      setBusy(true); setError('');
+      try { await api.post('/api/business/export-pdf', { menuId: menu.id }); await generatePDF(); }
+      catch (failure) { setError(failure.message || 'No se pudo generar el PDF.'); }
+      finally { setBusy(false); }
+    }}>
       <FileDown size={18} className="inline mr-2" />
       Descargar PDF
-    </Button>
+    </Button>{error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}</>
   );
 }

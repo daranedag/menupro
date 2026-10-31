@@ -1,4 +1,5 @@
 import { test, expect, request as createRequest } from '@playwright/test';
+import { startTrial, query } from '../helpers/backend';
 
 // Run ONLY against the isolated backend branch with email verification disabled.
 test('BFF persists CRUD, controls publication, and isolates restaurant owners', async () => {
@@ -15,11 +16,14 @@ test('BFF persists CRUD, controls publication, and isolates restaurant owners', 
     expect(response.status(), await response.text()).toBe(200);
     const data = await response.json();
     expect(data.data.user.id).toBeTruthy();
+    query(`UPDATE auth.users SET email_verified=true WHERE id='${data.data.user.id}'`);
     expect(response.headersArray().filter(header => header.name.toLowerCase() === 'set-cookie').some(header => header.value.includes('HttpOnly'))).toBeTruthy();
   }
   response = await a.post('/api/restaurants', { data: { name: 'Prueba MenuPro ' + suffix } });
   expect(response.status(), await response.text()).toBe(201);
   const restaurant = (await response.json()).data;
+  response = await startTrial(a, restaurant);
+  expect(response.status(), await response.text()).toBe(200);
   response = await a.post('/api/menus', { data: { restaurant_id: restaurant.id, name: 'Almuerzo' } });
   expect(response.status(), await response.text()).toBe(201);
   const menu = (await response.json()).data;

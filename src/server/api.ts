@@ -1,4 +1,5 @@
 import 'server-only';
+import { randomUUID } from 'node:crypto';
 import { cookies } from 'next/headers';
 import { createAuthActions } from '@insforge/sdk/ssr';
 import { z } from 'zod';
@@ -6,9 +7,11 @@ import { createInsForge, createPublicInsForge } from './insforge';
 import { assertSameOrigin, check, fail, HttpError, respond } from './http';
 import { credentials, restaurantSchema, menuSchema, sectionSchema, dishSchema, menuWrite, sectionWrite, dishWrite } from './schemas';
 import { slugify, toMenu, toSection, toDish } from '@/lib/menu.mjs';
+import { businessSession, handleBusinessApi } from './business';
+import { enforceRequestLimit } from './security';
 
 type Client = Awaited<ReturnType<typeof createInsForge>>;
-const restaurantColumns = 'id,name,slug,phone,address,city,currency,theme,active';
+const restaurantColumns = 'id,business_id,name,slug,phone,address,city,unit,no_physical_location,currency,theme,active,archived_at';
 const itemColumns = 'id,section_id,name,description,long_description,price,discount,image_url,tags,calories,prep_time,is_vegetarian,is_spicy,available,visible,order_index';
 const sectionColumns = 'id,menu_id,name,description,icon,active,visible,order_index';
 const menuColumns = 'id,restaurant_id,name,slug,description,icon,is_published,active,visible,show_call_to_action,cta_title,cta_description,phone_number,delivery_url';
@@ -23,9 +26,8 @@ async function body(request: Request) {
 async function session(client: Client, user: { id: string; email?: string; profile?: Record<string, unknown> | null }) {
   const defaultName = (typeof user.profile?.name === 'string' && user.profile.name.trim())
     || user.email?.split('@')[0] || '';
-  const { data: restaurants, error } = await client.database.from('menupro_restaurants')
-    .select(restaurantColumns).eq('owner_id', user.id).order('created_at').limit(100);
-  check(error);
+  const context = await businessSession(client);
+  const restaurants = context.restaurants;
   const profile = await client.database.from('menupro_profiles').select('id,name').eq('id', user.id).maybeSingle();
   check(profile.error);
   if (!profile.data) {
@@ -34,9 +36,13 @@ async function session(client: Client, user: { id: string; email?: string; profi
   }
   const selected = (await cookies()).get('menupro_restaurant')?.value;
   const activeRestaurant = restaurants?.find(restaurant => restaurant.id === selected) ?? restaurants?.[0];
-  return { id: user.id, email: user.email, name: profile.data?.name ?? defaultName, role: 'restaurant_owner',
+  return { id: user.id, email: user.email, name: profile.data?.name ?? defaultName,
+    role: context.is_admin ? 'platform_admin' : 'restaurant_owner', isAdmin: context.is_admin,
+    businesses: context.businesses, businessId: context.business_id, businessRole: context.business_role,
+    subscription: context.subscription, invitations: context.invitations,
     restaurants: restaurants ?? [], activeRestaurantId: activeRestaurant?.id, activeRestaurantName: activeRestaurant?.name,
-    activeRestaurantSlug: activeRestaurant?.slug, subscriptionTier: 'Básico', maxRestaurants: null };
+    activeRestaurantSlug: activeRestaurant?.slug, subscriptionTier: context.subscription?.plan_name,
+    maxRestaurants: context.subscription?.max_restaurants, canEdit: context.subscription?.has_access && !activeRestaurant?.archived_at && activeRestaurant?.entitled !== false };
 }
 
 async function menuById(client: Client, id: string) {
@@ -55,6 +61,7 @@ export async function handleApi(request: Request, context: { params: Promise<{ p
     const client = await createInsForge();
 
     if (path[0] === 'auth' && path.length === 2 && ['login', 'register', 'verify', 'logout'].includes(path[1]) && method === 'POST') {
+      if (path[1] !== 'logout') await enforceRequestLimit(request, 'auth_' + path[1], path[1] === 'login' ? 100 : 20);
       const auth = createAuthActions({ cookies: await cookies() });
       if (path[1] === 'logout') {
         const result = await auth.signOut();
@@ -84,6 +91,7 @@ export async function handleApi(request: Request, context: { params: Promise<{ p
       const { data, error } = await createPublicInsForge().database.rpc('menupro_public_menu', { p_restaurant_slug: path[2], p_menu_slug: path[3] });
       check(error);
       if (!data) throw new HttpError('Carta no encontrada o no publicada.', 404);
+      if (data.unavailable) return respond({ unavailable: true });
       return respond({ restaurant: data.restaurant, menu: toMenu(data.menu) });
     }
 
@@ -91,10 +99,13 @@ export async function handleApi(request: Request, context: { params: Promise<{ p
     if (authError || !userData?.user) throw new HttpError('Debes iniciar sesión.', 401);
     const user = userData.user;
 
+    const businessResponse = await handleBusinessApi(request, path, client, user);
+    if (businessResponse) return businessResponse;
+
     if (path.join('/') === 'auth/session' && method === 'GET') return respond({ user: await session(client, user) });
     if (path.join('/') === 'auth/restaurant' && method === 'POST') {
       const { id } = z.object({ id: z.string().uuid() }).strict().parse(await body(request));
-      const result = await client.database.from('menupro_restaurants').select('id').eq('id', id).eq('owner_id', user.id).maybeSingle();
+      const result = await client.database.from('menupro_restaurants').select('id').eq('id', id).maybeSingle();
       check(result.error);
       if (!result.data) throw new HttpError('Restaurante no encontrado.', 404);
       (await cookies()).set('menupro_restaurant', id, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 * 30 });
@@ -108,7 +119,8 @@ export async function handleApi(request: Request, context: { params: Promise<{ p
 
     if (path[0] === 'restaurants' && path.length <= 2) {
       if (method === 'GET') {
-        const query = client.database.from('menupro_restaurants').select(restaurantColumns).eq('owner_id', user.id);
+        const context = await businessSession(client);
+        const query = client.database.from('menupro_restaurants').select(restaurantColumns).eq('business_id', context.business_id);
         const result = path[1] ? await query.eq('id', z.string().uuid().parse(path[1])).maybeSingle() : await query.order('created_at').limit(100);
         check(result.error);
         if (path[1] && !result.data) throw new HttpError('Restaurante no encontrado.', 404);
@@ -118,21 +130,35 @@ export async function handleApi(request: Request, context: { params: Promise<{ p
         const input = restaurantSchema.parse(await body(request));
         const slug = input.slug || slugify(input.name);
         if (!slug) throw new HttpError('Ingresa un nombre o slug válido.');
-        const result = await client.database.from('menupro_restaurants').insert([{ ...input, slug, owner_id: user.id }]).select(restaurantColumns).single();
+        const context = await businessSession(client);
+        const args = { p_business_id: context.business_id,
+          p_name: input.name, p_slug: slug, p_phone: input.phone ?? '', p_address: input.address ?? '', p_city: input.city ?? '',
+          p_unit: input.unit ?? '', p_no_physical_location: input.no_physical_location ?? false };
+        let created = await client.database.rpc('menupro_create_restaurant', args);
+        if (created.error?.code === '23505' && !input.slug) {
+          created = await client.database.rpc('menupro_create_restaurant', { ...args, p_slug: slug.slice(0, 90) + '-' + randomUUID().slice(0, 8) });
+        }
+        check(created.error);
+        const result = await client.database.from('menupro_restaurants').select(restaurantColumns).eq('id', created.data).single();
         check(result.error); return respond(result.data, 201);
       }
       if (method === 'PATCH' && path.length === 2) {
         const input = restaurantSchema.partial().parse(await body(request));
         const result = await client.database.from('menupro_restaurants').update(input).eq('id', z.string().uuid().parse(path[1]))
-          .eq('owner_id', user.id).select(restaurantColumns).maybeSingle();
+          .select(restaurantColumns).maybeSingle();
         check(result.error); if (!result.data) throw new HttpError('Restaurante no encontrado.', 404);
         return respond(result.data);
       }
     }
 
     if (path[0] === 'menus' && path[1] === 'restaurant' && path.length === 3 && method === 'GET') {
-      const result = await client.database.from('menupro_menus').select(menuTree).eq('restaurant_id', z.string().uuid().parse(path[2])).order('created_at').limit(100);
-      check(result.error); return respond((result.data ?? []).map(toMenu));
+      const restaurantId = z.string().uuid().parse(path[2]);
+      const menus = [];
+      for (let offset = 0; ; offset += 100) {
+        const result = await client.database.from('menupro_menus').select(menuTree).eq('restaurant_id', restaurantId).order('created_at').range(offset, offset + 99);
+        check(result.error); menus.push(...(result.data ?? [])); if (!result.data || result.data.length < 100) break;
+      }
+      return respond(menus.map(toMenu));
     }
     if (path.join('/') === 'menus' && method === 'POST') {
       const input = menuSchema.parse(await body(request));

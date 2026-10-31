@@ -118,6 +118,7 @@ function MenuManagement() {
                       size="sm"
                       onClick={() => publishMenu(menu.id, !menu.isPublished)}
                       title={menu.isPublished ? 'Despublicar' : 'Publicar'}
+                      aria-label={`${menu.isPublished ? 'Despublicar' : 'Publicar'} ${menu.name}`}
                     >
                       {menu.isPublished ? 'Publicado' : 'Publicar'}
                     </Button>

@@ -15,6 +15,6 @@ export default defineConfig({
   testDir: './tests/integration',
   timeout: 90000,
   workers: 1,
-  use: { baseURL: 'http://localhost:3000', headless: true, browserName: 'chromium', channel: 'chrome' },
+  use: { baseURL: 'http://localhost:3000', headless: true, browserName: 'chromium', channel: 'chrome', actionTimeout: 15000 },
   reporter: 'list',
 });

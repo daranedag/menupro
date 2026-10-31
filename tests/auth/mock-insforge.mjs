@@ -9,6 +9,7 @@ const challenges = new Map();
 let profile = null;
 let initFailure = false;
 let exchangeCalls = 0;
+let passwordChanged = false;
 
 const server = createServer(async (request, response) => {
   const url = new URL(request.url, 'http://127.0.0.1:3101');
@@ -22,10 +23,17 @@ const server = createServer(async (request, response) => {
 
   if (url.pathname === '/health') return send(200, { ok: true });
   if (url.pathname === '/__test/reset') {
-    challenges.clear(); profile = null; initFailure = input?.initFailure ?? false; exchangeCalls = 0;
+    challenges.clear(); profile = null; initFailure = input?.initFailure ?? false; exchangeCalls = 0; passwordChanged = false;
     return send(200, { ok: true });
   }
-  if (url.pathname === '/__test/state') return send(200, { profile, exchangeCalls });
+  if (url.pathname === '/__test/state') return send(200, { profile, exchangeCalls, passwordChanged });
+  if (url.pathname === '/api/auth/email/send-reset-password') return send(200, { success: true, message: 'Check your email' });
+  if (url.pathname === '/api/auth/email/exchange-reset-password-token') return input?.code === '123456'
+    ? send(200, { token: 'local-password-reset-token' }) : send(400, { error: 'INVALID_CODE', message: 'Invalid code' });
+  if (url.pathname === '/api/auth/email/reset-password') {
+    if (input?.otp !== 'local-password-reset-token') return send(400, { error: 'INVALID_TOKEN' });
+    passwordChanged = true; return send(200, { success: true });
+  }
   if (url.pathname === '/api/auth/oauth/google') {
     if (initFailure) return send(503, { error: 'PROVIDER_UNAVAILABLE', message: 'Provider unavailable' });
     const code = randomUUID();
@@ -46,6 +54,12 @@ const server = createServer(async (request, response) => {
       ? send(200, { user }) : send(401, { error: 'UNAUTHORIZED' });
   }
   if (url.pathname === '/api/database/records/menupro_restaurants') return send(200, []);
+  if (url.pathname === '/api/database/rpc/menupro_rate_limit') return send(200, true);
+  if (url.pathname === '/api/database/rpc/menupro_session') return send(200, {
+    business_id: '805fd754-3883-43fc-8350-25cc1c0b82c9', business_role: 'owner', is_admin: false,
+    businesses: [{ id: '805fd754-3883-43fc-8350-25cc1c0b82c9', name: 'Mi negocio', role: 'owner' }], restaurants: [], invitations: [],
+    subscription: { plan_id: 'local', plan_name: 'Local', max_restaurants: 1, effective_status: 'unstarted', has_access: false },
+  });
   if (url.pathname === '/api/database/records/menupro_profiles') {
     if (request.method === 'POST') { profile = input[0]; return send(201, null); }
     return send(200, profile ? [profile] : []);
