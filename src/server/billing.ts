@@ -6,6 +6,7 @@ import { readJson } from './business';
 import { createPublicInsForge } from './insforge';
 import { check, HttpError, respond } from './http';
 import { escapeHtml, recurringGross, safeCheckoutUrl } from '@/lib/billing.mjs';
+import { invitationEmailReady } from './email';
 
 type MpRecord = Record<string, any>;
 const providerId = /^[a-zA-Z0-9_-]{1,128}$/;
@@ -14,7 +15,7 @@ export function paymentReadiness() {
   const mode = process.env.MENUPRO_BILLING_MODE || 'disabled';
   return { provider: 'mercadopago', mode, ready: ['test', 'live'].includes(mode) && Boolean(process.env.APP_URL?.startsWith('https://')) &&
     Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN && process.env.MERCADOPAGO_WEBHOOK_SECRET && process.env.MENUPRO_WORKER_SECRET),
-    emailEnabled: process.env.MENUPRO_EMAIL_ENABLED === 'true' };
+    emailEnabled: invitationEmailReady() };
 }
 
 export async function mercadoPago(path: string, method = 'GET', data?: unknown, idempotencyKey?: string): Promise<MpRecord> {

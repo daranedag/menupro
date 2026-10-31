@@ -109,6 +109,12 @@ Configura estas variables en el proyecto de Vercel:
 | `MERCADOPAGO_ACCESS_TOKEN` | Credencial privada de la integración de Mercado Pago |
 | `MERCADOPAGO_WEBHOOK_SECRET` | Secreto de firma de las notificaciones de Mercado Pago |
 | `MENUPRO_EMAIL_ENABLED` | `false` hasta verificar el servicio de correos transaccionales |
+| `RESEND_API_KEY` | Clave privada de Resend con permiso de envío |
+| `RESEND_FROM` | Remitente de un dominio verificado en Resend; formato `MenuPro <correo@dominio-verificado>` |
+
+Las invitaciones de equipo y de demo asistida se envían por la [API de Resend](https://resend.com/docs/api-reference/emails/send-email). Para activarlas, verifica el dominio remitente en Resend, configura `RESEND_API_KEY` y `RESEND_FROM` como variables privadas en Vercel y cambia `MENUPRO_EMAIL_ENABLED` a `true`. Repite la configuración en `.env.local` para probar localmente. Reconstruye el despliegue después de cambiar las variables. Mientras no se configure Resend, deja el envío en `false`.
+
+La interfaz confirma si el proveedor aceptó el correo o muestra el enlace para compartirlo si no pudo enviarse. La invitación se conserva aunque Resend falle; aceptarla siempre exige iniciar sesión con el correo verificado del destinatario. Cada envío usa una clave de idempotencia basada en la invitación para evitar duplicados al repetir la misma solicitud al proveedor. Estos ajustes no cambian los correos de verificación de cuenta ni de recuperación de contraseña de InsForge.
 
 No subas `.env.local`, `.insforge` ni claves administrativas. Los previews también deben apuntar al backend elegido expresamente.
 

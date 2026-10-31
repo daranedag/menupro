@@ -29,7 +29,7 @@ export default function BusinessSettings() {
   useEffect(() => { load(); }, [load]);
   async function run(action, success) {
     setBusy(true); setError(''); setMessage('');
-    try { await action(); await reloadSession(); await load(); setMessage(success); }
+    try { const result = await action(); await reloadSession(); await load(); setMessage(typeof success === 'function' ? success(result) : success); }
     catch (failure) { setError(failure.message); } finally { setBusy(false); }
   }
   return <DashboardLayout><div className="mx-auto max-w-4xl space-y-6 text-slate-900">
@@ -71,8 +71,8 @@ export default function BusinessSettings() {
         </div>}
       </li>)}</ul>}
       {owner && <form className="mt-5 space-y-3 border-t pt-5" onSubmit={event => { event.preventDefault(); run(async () => {
-        const { data } = await api.post('/api/business/invitations', { email, role }); setInviteUrl(data.url); setEmail('');
-      }, 'Invitación creada. Comparte el enlace con la persona invitada.'); }}>
+        const { data } = await api.post('/api/business/invitations', { email, role }); setInviteUrl(data.url); setEmail(''); return data;
+      }, data => data.emailSent ? 'Invitación enviada por correo. También puedes compartir el enlace.' : 'Invitación creada. El correo no se envió; comparte el enlace con la persona invitada.'); }}>
         <Input label="Correo de la persona invitada" name="inviteEmail" type="email" value={email} onChange={event => setEmail(event.target.value)} required forceLight />
         <label className="block text-sm">Permiso <select value={role} onChange={event => setRole(event.target.value)} className="ml-2 rounded border p-2"><option value="editor">Editor de cartas</option><option value="manager">Administrador del restaurante</option></select></label>
         <Button type="submit" disabled={busy}>Crear invitación</Button>

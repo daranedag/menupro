@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { createInsForge } from './insforge';
 import { check, HttpError, respond } from './http';
 import { handleBillingApi, paymentReadiness } from './billing';
-import { escapeHtml } from '@/lib/billing.mjs';
+import { deliverInvitation } from './email';
 
 export type BusinessClient = Awaited<ReturnType<typeof createInsForge>>;
 type Restaurant = { id: string; business_id: string; name: string; slug: string; archived_at: string | null; [key: string]: unknown };
@@ -60,13 +60,9 @@ export async function handleBusinessApi(request: Request, path: string[], client
     url.searchParams.set('invitation', id);
     // The invitation is email-bound and can also be accepted from the recipient's
     // account if email delivery is disabled or temporarily unavailable.
-    let emailSent = false;
-    if (process.env.MENUPRO_EMAIL_ENABLED === 'true') {
-      const result = await client.emails.send({ to: input.email, from: 'MenuPro', subject: 'Invitación a tu equipo en MenuPro',
-        html: `<p>Te invitaron a administrar un negocio en MenuPro.</p><p><a href="${url.href.replaceAll('&', '&amp;')}">Revisar invitación</a></p><p>Ingresa o regístrate con el correo que recibió esta invitación.</p>` });
-      emailSent = !result.error;
-    }
-    return respond({ id, url: url.href, emailSent }, 201);
+    const delivery = await deliverInvitation({ id, to: input.email, url: url.href, kind: 'team',
+      businessName: context.businesses.find(b => b.id === context.business_id)?.name || 'tu negocio' });
+    return respond({ id, url: url.href, ...delivery }, 201);
   }
   if (route === 'business/invitations/accept' && method === 'POST') {
     const { id } = z.object({ id: uuid }).strict().parse(await readJson(request));
@@ -143,13 +139,9 @@ export async function handleBusinessApi(request: Request, path: string[], client
       const prepared = await rpc(client, 'menupro_admin_prepare', { p_name: input.name, p_email: input.email });
       const url = new URL('/app/dashboard/business', process.env.APP_URL || request.url);
       url.searchParams.set('invitation', prepared.invitationId);
-      let emailSent = false;
-      if (process.env.MENUPRO_EMAIL_ENABLED === 'true') {
-        const result = await client.emails.send({ to: input.email, from: 'MenuPro', subject: 'Tu cuenta de negocio está preparada en MenuPro',
-          html: `<p>Preparamos tu negocio para que puedas probar MenuPro durante 15 días, sin tarjeta.</p><p><a href="${escapeHtml(url.href)}">Aceptar la invitación</a></p><p>Ingresa o regístrate con este mismo correo. El plazo comienza cuando actives la demo.</p>` });
-        emailSent = !result.error;
-      }
-      return respond({ ...prepared, url: url.href, emailSent }, 201);
+      const delivery = await deliverInvitation({ id: prepared.invitationId, to: input.email, url: url.href,
+        businessName: input.name, kind: 'demo' });
+      return respond({ ...prepared, url: url.href, ...delivery }, 201);
     }
     if (route === 'admin/prepaid' && method === 'POST') {
       const input = z.object({ businessId: uuid, planId: z.enum(['local', 'grupo']), cycle: z.enum(['monthly', 'annual']),

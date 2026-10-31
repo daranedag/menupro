@@ -24,7 +24,7 @@ export default function Admin() {
   useEffect(() => { load(); }, [load]);
   async function run(action, notice) {
     setBusy(true); setError(''); setMessage('');
-    try { await action(); await load(); setMessage(notice); } catch (failure) { setError(failure.message); } finally { setBusy(false); }
+    try { const result = await action(); await load(); setMessage(typeof notice === 'function' ? notice(result) : notice); } catch (failure) { setError(failure.message); } finally { setBusy(false); }
   }
   if (!user?.isAdmin) return <DashboardLayout><p>No tienes acceso a la administración de MenuPro.</p></DashboardLayout>;
   return <DashboardLayout><div className="mx-auto max-w-6xl space-y-6 text-slate-900">
@@ -47,8 +47,8 @@ export default function Admin() {
       </div>)}
     </section>
     <div className="grid gap-6 md:grid-cols-2"><form className="space-y-4 rounded-xl border bg-white p-5" onSubmit={event => { event.preventDefault(); run(async () => {
-      const { data } = await api.post('/api/admin/prepare', prepared); setPreparedUrl(data.url);
-    }, 'Negocio preparado. Comparte el enlace con el destinatario; verá la invitación al entrar con su correo. La demo todavía no ha comenzado.'); }}>
+      const { data } = await api.post('/api/admin/prepare', prepared); setPreparedUrl(data.url); return data;
+    }, data => data.emailSent ? 'Negocio preparado e invitación enviada por correo. La demo todavía no ha comenzado.' : 'Negocio preparado. El correo no se envió; comparte el enlace con el destinatario. La demo todavía no ha comenzado.'); }}>
       <h3 className="text-lg font-semibold">Preparar demo asistida</h3><Input label="Nombre del negocio" name="prepareName" value={prepared.name} onChange={event => setPrepared(p => ({ ...p, name: event.target.value }))} required forceLight />
       <Input label="Correo del propietario" name="prepareEmail" type="email" value={prepared.email} onChange={event => setPrepared(p => ({ ...p, email: event.target.value }))} required forceLight />
       <Button type="submit" disabled={busy}>Preparar e invitar</Button>
