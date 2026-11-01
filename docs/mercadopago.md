@@ -16,7 +16,7 @@ Creada el 1 de noviembre de 2026 en la cuenta conectada de Chile (MLC).
 - Credencial de prueba guardada en `.env.local` y Vercel. La API de suscripciones respondió HTTP 200 a una consulta de lectura.
 - Credencial y firma del webhook guardadas con tipo Secret en Vercel. La firma local aún debe copiarse privadamente desde el panel si se va a usar el servidor local.
 - Contratación deshabilitada (`MENUPRO_BILLING_MODE=disabled`); no se procesaron cobros.
-- Faltan el entorno aislado de prueba, configurar allí el mantenimiento de InsForge y validar checkout y notificaciones reales del proveedor. La consulta HTTP 200 no reemplaza esa prueba.
+- Checkout y pago ficticio aprobados con vendedor y comprador de prueba, recuperación del cobro validada y reintentos firmados recibidos con HTTP 200. Ver validacion-local-20261101.md para el alcance y los límites.
 - Falta completar la activación de credenciales productivas en Mercado Pago antes del lanzamiento de pagos reales.
 
 ## Solución elegida
@@ -25,17 +25,17 @@ Una suscripción sin plan asociado de Mercado Pago por negocio. Los planes Local
 
 La demo se activa dentro de MenuPro sin tarjeta. Autorizar una suscripción no acredita un período pagado: se espera la confirmación del cobro, contrastada con la API del proveedor. El primer cobro durante la demo debe respetar su vencimiento. Este comportamiento debe comprobarse con el checkout real de pruebas antes de ofrecerlo a clientes.
 
-Para el primer lanzamiento se validará Local mensual: $9.990 netos y $11.888 finales; con bienvenida, las tres primeras mensualidades son de $7.992 netos y $9.510 finales. Los importes usan el redondeo existente de MenuPro. La cuarta mensualidad vuelve al precio regular. Anualidad y Grupo requieren sus propios recorridos de validación.
+Para el primer lanzamiento se valida Local mensual con honorarios brutos de 9.990 CLP y bienvenida de 7.992 CLP. El importe transferido depende de la retención del receptor. Ver boletas-honorarios.md. La cuarta mensualidad vuelve a la tarifa regular. Anualidad y Grupo requieren sus propios recorridos del proveedor.
 
 ## Credenciales y notificaciones
 
-La aplicación dispone de credenciales de prueba. Sus credenciales de producción requieren completar la activación en Mercado Pago. Nunca deducir el entorno solamente por el prefijo de una credencial ni usar credenciales de otra aplicación.
+La aplicación dispone de credenciales de prueba. Para Suscripciones, la validación completa utilizó una aplicación separada dentro de una cuenta vendedora ficticia y las credenciales productivas de esa cuenta de prueba. La API verifica el vendedor con test_user; su pago puede informar live_mode=true. Sus credenciales de producción requieren completar la activación en Mercado Pago. Nunca deducir el entorno solamente por el prefijo de una credencial ni usar credenciales de otra aplicación.
 
 El 1 de noviembre se registró la URL de prueba `https://www.menupro.cl/api/payments/mercadopago/webhook` para `subscription_preapproval`, `subscription_authorized_payment` y `payment`. La URL productiva no está configurada. Verificar la entrega efectiva: la documentación genérica de notificaciones tiene indicaciones diferentes para Suscripciones y el panel sí permite seleccionar sus eventos; guardar la configuración por sí solo no valida la entrega.
 
 La firma completa se obtiene en Webhooks del panel y se guarda privadamente en `MERCADOPAGO_WEBHOOK_SECRET`. El MCP solo devuelve sus primeros caracteres: no utilizar ese fragmento como secreto. La integración actual exige firma válida y consulta el recurso antes de acreditar pagos; no deshabilitar esa comprobación para hacer pasar una simulación.
 
-En Next/Vercel se necesitan `APP_URL`, `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET`, `MENUPRO_WORKER_SECRET` y `MENUPRO_BILLING_MODE`. En el mantenimiento de InsForge también deben configurarse la credencial del proveedor y el modo, según `operacion-comercial.md`. No cambiar secretos de otras aplicaciones del backend compartido.
+En Next/Vercel se necesitan `APP_URL`, `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET`, `MENUPRO_WORKER_SECRET` y `MENUPRO_BILLING_MODE`. En el mantenimiento de InsForge debe configurarse el mismo modo; las credenciales del proveedor permanecen en Next/Vercel, según `operacion-comercial.md`. No cambiar secretos de otras aplicaciones del backend compartido.
 
 Mantener el modo `disabled` hasta completar la firma, el despliegue y el entorno de pruebas. Cambiar una variable de Vercel requiere un nuevo despliegue para que la aplicación la reciba. Para probar sin afectar clientes, usar un despliegue y una rama de datos aislados, con su propio secreto de operaciones; no adelantar fechas ni crear negocios sintéticos en el backend principal.
 
@@ -47,7 +47,7 @@ Ejecutar `pnpm payments:check` desde este repositorio. Solo consulta la API de s
 
 1. Usar una cuenta compradora de prueba y los datos de tarjeta de prueba oficiales vigentes de Chile, separados de la cuenta vendedora.
 2. Registrar un negocio en el entorno aislado, activar la demo y guardar/publicar una carta.
-3. Consultar el precio de Local mensual y verificar descuento, IVA y fecha del primer cobro.
+3. Consultar el precio de Local mensual y verificar descuento, honorario bruto, retención y fecha del primer cobro.
 4. Continuar a Mercado Pago, autorizar y regresar. Confirmar que una autorización sin cobro no concede un período pagado.
 5. Confirmar que llega la notificación, pasa la firma y acredita el período una sola vez. Repetir el evento y comprobar que no duplica el período ni consume otro descuento.
 6. Verificar rechazo, pago pendiente, cancelación y renovación. Comprobar las tres mensualidades con descuento y el cambio de importe posterior. Adelantar fechas solo en la rama de pruebas.

@@ -14,13 +14,13 @@ Este documento reúne las decisiones aprobadas sobre suscripciones, demos y prev
 
 ## 2. Planes y límites
 
-Precios en pesos chilenos, antes de IVA. La contratación muestra impuestos y total final.
+Precios en pesos chilenos como honorarios brutos, sin IVA. Emisión manual de boletas de honorarios; la contratación detalla retención e importe a pagar. Ver boletas-honorarios.md.
 
 | Plan | Precio mensual | Precio anual, pagado de una vez | Restaurantes activos | Cartas |
 | --- | ---: | ---: | ---: | --- |
 | Demo | Gratis durante 15 días | No aplica | 1 | Ilimitadas |
-| Local | $9.990 + IVA | $99.900 + IVA | 1 | Ilimitadas |
-| Grupo | $24.990 + IVA | $249.900 + IVA | Hasta 3 | Ilimitadas por restaurante |
+| Local | $9.990 brutos | $99.900 brutos | 1 | Ilimitadas |
+| Grupo | $24.990 brutos | $249.900 brutos | Hasta 3 | Ilimitadas por restaurante |
 
 - Para más de tres restaurantes se ofrece cotización asistida.
 - Ambos planes pagados incluyen edición, publicación, QR, personalización y exportación PDF, con cartas y platos ilimitados.
@@ -65,8 +65,8 @@ Precios en pesos chilenos, antes de IVA. La contratación muestra impuestos y to
 
 | Modalidad | Beneficio | Ejemplo para Local |
 | --- | --- | --- |
-| Mensual | 20% en las primeras tres mensualidades | $7.992 + IVA por mensualidad; después, $9.990 + IVA |
-| Anual | 10% sobre el primer pago anual | Primer año por $89.910 + IVA; después, tarifa anual vigente |
+| Mensual | 20% en las primeras tres mensualidades | $7.992 brutos por mensualidad; después, $9.990 brutos |
+| Anual | 10% sobre el primer pago anual | Primer año por $89.910 brutos; después, tarifa anual vigente |
 
 - El descuento anual de bienvenida se aplica sobre el precio anual ya reducido. Para Local, el primer año representa un ahorro del 25% frente a doce mensualidades normales.
 - No se acumula con otros cupones.

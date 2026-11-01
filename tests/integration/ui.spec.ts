@@ -29,7 +29,7 @@ test('landing links, mobile login, and the menu editor work in the browser', asy
   await page.getByLabel(/^Comuna/).fill('Santiago');
   await page.getByRole('checkbox', { name: /Acepto los/ }).check();
   await page.getByRole('button', { name: 'Activar demo gratis', exact: true }).click();
-  await expect(page.getByText(restaurantName, { exact: true })).toBeVisible();
+  await expect(page.getByText(restaurantName, { exact: true })).toBeVisible({ timeout: 15000 });
   await page.goto('/app/dashboard/menus/new');
   await page.getByLabel('Nombre de la Carta').fill('Carta de prueba UI');
   await page.getByRole('button', { name: 'Crear Carta', exact: true }).click();

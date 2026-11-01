@@ -111,24 +111,24 @@ test('payment approval is trusted and idempotent; discounts expire and grace doe
     await rpc('menupro_bind_checkout', { p_request_id: checkout.id, p_provider_id: provider, p_url: 'https://www.mercadopago.cl/test' });
     await rpc('menupro_provider_status', { p_request_id: checkout.id, p_provider_id: provider, p_status: 'authorized' });
     expect((await session(a.context)).subscription.has_access).toBe(false);
-    const denied = await a.sdk.database.rpc('menupro_apply_payment', { p_secret: 'x'.repeat(64), p_request_id: checkout.id, p_payment_id: 'forged', p_invoice_id: 'forged', p_status: 'approved', p_amount: 9510,
+    const denied = await a.sdk.database.rpc('menupro_apply_payment', { p_secret: 'x'.repeat(64), p_request_id: checkout.id, p_payment_id: 'forged', p_invoice_id: 'forged', p_status: 'approved', p_amount: 7992,
       p_currency: 'CLP', p_approved_at: new Date().toISOString(), p_modified_at: new Date().toISOString(), p_due_at: new Date().toISOString() });
     expect(denied.error).toBeTruthy();
     const now = new Date().toISOString();
     const event = { p_request_id: checkout.id, p_payment_id: 'test-payment-' + checkout.id, p_invoice_id: 'invoice-' + checkout.id,
-      p_status: 'approved', p_amount: 9510, p_currency: 'CLP', p_approved_at: now, p_modified_at: now, p_due_at: now };
+      p_status: 'approved', p_amount: 7992, p_currency: 'CLP', p_approved_at: now, p_modified_at: now, p_due_at: now };
     await rpc('menupro_apply_payment', event);
     const first = await session(a.context); expect(first.subscription.has_access).toBe(true); expect(first.subscription.welcome_payments_used).toBe(1);
     const upgrade = await a.sdk.database.rpc('menupro_quote', { p_business_id: a.user.businessId, p_plan_id: 'grupo', p_cycle: 'monthly', p_purpose: 'upgrade' });
     expect(upgrade.error).toBeNull(); expect(upgrade.data.net_amount).toBeGreaterThan(11990); expect(upgrade.data.net_amount).toBeLessThanOrEqual(12000);
     await rpc('menupro_apply_payment', event);
     const repeat = await session(a.context); expect(repeat.subscription.current_period_end).toBe(first.subscription.current_period_end); expect(repeat.subscription.welcome_payments_used).toBe(1);
-    for (let i = 2; i <= 4; i++) await rpc('menupro_apply_payment', { ...event, p_payment_id: event.p_payment_id + '-' + i, p_invoice_id: event.p_invoice_id + '-' + i, p_amount: i <= 3 ? 9510 : 11888 });
+    for (let i = 2; i <= 4; i++) await rpc('menupro_apply_payment', { ...event, p_payment_id: event.p_payment_id + '-' + i, p_invoice_id: event.p_invoice_id + '-' + i, p_amount: i <= 3 ? 7992 : 9990 });
     expect((await session(a.context)).subscription.welcome_payments_used).toBe(4);
     query(`UPDATE public.menupro_subscriptions SET current_period_start=now()-interval '1 month',current_period_end=now()-interval '1 day',grace_until=NULL,status='active' WHERE business_id='${a.user.businessId}'`);
     expect((await session(a.context)).subscription.has_access).toBe(true);
     const graceBefore = await session(a.context);
-    await rpc('menupro_apply_payment', { ...event, p_payment_id: event.p_payment_id + '-grace', p_invoice_id: event.p_invoice_id + '-grace', p_amount: 11888 });
+    await rpc('menupro_apply_payment', { ...event, p_payment_id: event.p_payment_id + '-grace', p_invoice_id: event.p_invoice_id + '-grace', p_amount: 9990 });
     const graceAfter = await session(a.context);
     expect(graceAfter.subscription.current_period_start).toBe(graceBefore.subscription.current_period_end);
     query(`UPDATE public.menupro_subscriptions SET current_period_end=now()-interval '8 days' WHERE business_id='${a.user.businessId}'`);

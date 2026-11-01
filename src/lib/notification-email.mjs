@@ -16,7 +16,7 @@ export async function deliverQueuedNotifications({ rpc, config, appUrl, fetchEma
     if (now() - started >= budgetMs) { deferred = notices.length - index; break; }
     const result = await sendResendEmail({ to: notice.email, subject: notice.subject,
       idempotencyKey: `menupro-notification/${notice.id}`,
-      html: `<div lang="es" style="font-family:Arial,sans-serif;color:#0f172a;max-width:560px;margin:auto;padding:32px"><h1 style="font-size:24px">${emailEscape(notice.subject)}</h1><p>${emailEscape(notice.message)}</p><p><a href="${emailEscape(link)}">Revisar mi cuenta en MenuPro</a></p><p>Este aviso corresponde a tu demo o suscripción de MenuPro.</p></div>`,
+      html: `<div lang="es" style="font-family:Arial,sans-serif;color:#0f172a;max-width:560px;margin:auto;padding:32px"><h1 style="font-size:24px">${emailEscape(notice.subject)}</h1><p>${emailEscape(notice.message)}</p><p><a href="${emailEscape(link)}">Revisar mi cuenta en MenuPro</a></p><p>Este aviso corresponde a tu cuenta de MenuPro.</p></div>`,
       text: `${notice.subject}\n\n${notice.message}\n\nRevisa tu cuenta: ${link}`,
     }, config, fetchEmail);
     // If this acknowledgement fails, keep the lease. The next run reuses the same

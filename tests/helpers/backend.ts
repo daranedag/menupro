@@ -21,6 +21,9 @@ export async function account(label: string) {
   // The isolated backend skips outgoing verification email but keeps its flag
   // false. This auth fixture represents a verified customer; never run on parent.
   query(`UPDATE auth.users SET email_verified=true WHERE id='${user.id}'`);
+  const profile = await context.post('/api/billing/profile', { data: { rut: '11.111.111-1', legalName: 'Receptor de prueba',
+    address: 'Domicilio de prueba 123', commune: 'Santiago', email, withholdingParty: 'emitter' } });
+  expect(profile.status(), await profile.text()).toBe(200);
   const cookies = (await context.storageState()).cookies;
   const sdk = createClient({ baseUrl: link.oss_host, anonKey: env.NEXT_PUBLIC_INSFORGE_ANON_KEY,
     accessToken: cookies.find(cookie => cookie.name === 'insforge_access_token')?.value, isServerMode: true });

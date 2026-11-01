@@ -14,10 +14,15 @@ const secretResult = cli(['secrets', 'get', 'ANON_KEY']);
 const anon = secretResult.value ?? secretResult.secret?.value ?? secretResult.data?.value;
 if (typeof anon !== 'string' || anon.length < 50) throw new Error('No fue posible obtener la clave pública del entorno temporal.');
 const env = readFileSync('.env.local', 'utf8');
-if (!existsSync('.insforge/env-before-business.local')) writeFileSync('.insforge/env-before-business.local', env);
-const worker = env.match(/^MENUPRO_WORKER_SECRET=(.+)$/m)?.[1] || randomBytes(48).toString('hex');
+const currentBackend = env.match(/^NEXT_PUBLIC_INSFORGE_URL=(.+)$/m)?.[1].trim();
+if (currentBackend === parent.oss_host) writeFileSync('.insforge/env-before-business.local', env);
+else if (currentBackend !== config.oss_host || !existsSync('.insforge/env-before-business.local')) throw new Error('Restaura primero la configuración del proyecto principal antes de preparar otra rama.');
+const worker = randomBytes(48).toString('hex');
 const next = env.replace(/^NEXT_PUBLIC_INSFORGE_URL=.*$/m, 'NEXT_PUBLIC_INSFORGE_URL=' + config.oss_host)
-  .replace(/^NEXT_PUBLIC_INSFORGE_ANON_KEY=.*$/m, 'NEXT_PUBLIC_INSFORGE_ANON_KEY=' + anon);
+  .replace(/^NEXT_PUBLIC_INSFORGE_ANON_KEY=.*$/m, 'NEXT_PUBLIC_INSFORGE_ANON_KEY=' + anon)
+  .replace(/^MENUPRO_WORKER_SECRET=.*$/m, 'MENUPRO_WORKER_SECRET=' + worker)
+  .replace(/^MENUPRO_BILLING_MODE=.*$/m, 'MENUPRO_BILLING_MODE=disabled')
+  .replace(/^MENUPRO_EMAIL_ENABLED=.*$/m, 'MENUPRO_EMAIL_ENABLED=false');
 writeFileSync('.env.local', next + (next.endsWith('\n') ? '' : '\n') +
   (next.includes('MENUPRO_WORKER_SECRET=') ? '' : 'MENUPRO_WORKER_SECRET=' + worker + '\n') +
   (next.includes('MENUPRO_BILLING_MODE=') ? '' : 'MENUPRO_BILLING_MODE=disabled\n') +

@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { honorariumAmounts } from './honorarios.mjs';
 
 export function verifyMercadoPagoSignature({ signature, requestId, dataId, secret, now = Date.now() }) {
   if (!secret || !signature || !requestId || !dataId || requestId.length > 200) return false;
@@ -11,14 +12,18 @@ export function verifyMercadoPagoSignature({ signature, requestId, dataId, secre
   return timingSafeEqual(expected, Buffer.from(parts.v1, 'hex'));
 }
 
-export function recurringGross(subscription) {
+export function recurringGross(subscription, date = new Date()) {
   const cycle = subscription.billing_cycle;
   let net = cycle === 'annual' ? subscription.annual_net : subscription.monthly_net;
-  if (subscription.welcome_redeemed_at && subscription.welcome_cycle === cycle &&
+  const welcome = subscription.checkout_welcome ?? Boolean(subscription.welcome_redeemed_at);
+  const welcomeCycle = subscription.welcome_cycle ?? (welcome ? cycle : null);
+  if (welcome && welcomeCycle === cycle &&
     subscription.welcome_payments_used < (cycle === 'annual' ? 1 : 3)) {
     net = Math.round(net * (cycle === 'annual' ? 0.9 : 0.8));
   }
-  return net + Math.round(net * 0.19);
+  return subscription.tax_mode === 'honorarios'
+    ? honorariumAmounts(net, subscription.billing_snapshot.withholding_party, date).gross_amount
+    : net + Math.round(net * 0.19);
 }
 
 export function safeCheckoutUrl(value) {

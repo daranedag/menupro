@@ -41,11 +41,11 @@ test('prepaid transfers preserve demo days, apply welcome pricing and reject dup
     const r = await restaurant(customer.context, 'Transferencia ' + Date.now()); expect((await startTrial(customer.context, r)).status()).toBe(200);
     expect((await customer.context.post('/api/menus', { data: { restaurant_id: r.id, name: 'Carta propia' } })).status()).toBe(201);
     const before = await session(customer.context);
-    const payload = { businessId: customer.user.businessId, planId: 'local', cycle: 'monthly', reference: 'BANK-' + Date.now(), reason: 'Transferencia verificada en prueba aislada.', grossAmount: 9510 };
+    const payload = { businessId: customer.user.businessId, planId: 'local', cycle: 'monthly', reference: 'BANK-' + Date.now(), reason: 'Transferencia verificada en prueba aislada.', grossAmount: 7992 };
     expect((await customer.context.post('/api/admin/prepaid', { data: payload })).status()).toBe(403);
     expect((await admin.context.post('/api/admin/prepaid', { data: { ...payload, grossAmount: 9500 } })).status()).toBe(409);
     let response = await admin.context.post('/api/admin/prepaid', { data: payload }); expect(response.status(), await response.text()).toBe(200);
-    expect((await response.json()).data.gross_amount).toBe(9510);
+    expect((await response.json()).data.gross_amount).toBe(7992);
     const after = await session(customer.context); expect(after.subscription.current_period_start).toBe(before.subscription.trial_ends_at);
     expect(after.subscription.cancel_at_period_end).toBe(true); expect(after.subscription.welcome_payments_used).toBe(1);
     expect((await admin.context.post('/api/admin/prepaid', { data: payload })).status()).toBe(409);
@@ -67,13 +67,13 @@ test('a paid downgrade archives the other restaurants; chargeback resolution nev
     await rpc('menupro_bind_checkout', { p_request_id: checkout.id, p_provider_id: provider, p_url: 'https://www.mercadopago.cl/test' });
     await rpc('menupro_provider_status', { p_request_id: checkout.id, p_provider_id: provider, p_status: 'authorized' });
     const event = { p_request_id: checkout.id, p_payment_id: 'group-' + checkout.id, p_invoice_id: 'group-invoice-' + checkout.id,
-      p_status: 'approved', p_amount: 23790, p_currency: 'CLP', p_approved_at: new Date().toISOString(), p_modified_at: new Date().toISOString(), p_due_at: new Date().toISOString() };
+      p_status: 'approved', p_amount: 19992, p_currency: 'CLP', p_approved_at: new Date().toISOString(), p_modified_at: new Date().toISOString(), p_due_at: new Date().toISOString() };
     await rpc('menupro_apply_payment', event);
     const second = await restaurant(a.context, 'Reducción dos ' + Date.now()); await restaurant(a.context, 'Reducción tres ' + Date.now());
     expect((await a.context.post('/api/restaurants', { data: { name: 'Cuarto bloqueado' } })).status()).toBe(409);
     const scheduled = await a.sdk.database.rpc('menupro_schedule_downgrade', { p_business_id: a.user.businessId, p_restaurant_id: second.id }); expect(scheduled.error).toBeNull();
     const before = await session(a.context); expect(before.subscription.plan_id).toBe('grupo'); expect(before.restaurants.filter((r: any) => !r.archived_at)).toHaveLength(3);
-    const next = { ...event, p_payment_id: event.p_payment_id + '-local', p_invoice_id: event.p_invoice_id + '-local', p_amount: 9510 };
+    const next = { ...event, p_payment_id: event.p_payment_id + '-local', p_invoice_id: event.p_invoice_id + '-local', p_amount: 7992 };
     await rpc('menupro_apply_payment', next);
     const reduced = await session(a.context); expect(reduced.subscription.plan_id).toBe('local');
     expect(reduced.restaurants.filter((r: any) => !r.archived_at).map((r: any) => r.id)).toEqual([second.id]);
@@ -85,7 +85,7 @@ test('a paid downgrade archives the other restaurants; chargeback resolution nev
     const resolved = await session(a.context); expect(resolved.subscription.has_access).toBe(true);
     expect(resolved.subscription.current_period_end).toBe(reduced.subscription.current_period_end);
     expect(resolved.subscription.welcome_payments_used).toBe(reduced.subscription.welcome_payments_used);
-    await rpc('menupro_apply_payment', { ...next, p_status: 'refunded', p_refunded: 9510, p_modified_at: new Date(modified + 3000).toISOString() });
+    await rpc('menupro_apply_payment', { ...next, p_status: 'refunded', p_refunded: 7992, p_modified_at: new Date(modified + 3000).toISOString() });
     expect((await session(a.context)).subscription.has_access).toBe(false);
   } finally { await a.context.dispose(); }
 });

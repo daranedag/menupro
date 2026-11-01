@@ -6,7 +6,7 @@ Implementación del acuerdo del 31 de octubre de 2026. Consultar `reglas-de-nego
 
 - Registro con Google o correo → verificación → datos del restaurante → aceptación expresa de la demo → carta de ejemplo sin publicar.
 - Mi negocio: integrantes, invitaciones ligadas al correo verificado, transferencia de propiedad, archivo/restauración de locales y descarga de los datos propios.
-- Suscripción: planes y cotización con IVA, oferta de bienvenida, autorización de renovación, contratación pendiente, cancelación y reducción con selección del local.
+- Suscripción: planes y cotización de honorarios brutos, con retención cuando corresponde, oferta de bienvenida, autorización de renovación, contratación pendiente, cancelación y reducción con selección del local.
 - Administración: disponible únicamente para el correo verificado `daranedag@gmail.com`; revisión de coincidencias, demos preparadas sin iniciar el reloj, cortesías y registro de transferencias recibidas.
 - Recuperación de contraseña: código por correo, intercambio por un token conservado en una cookie HttpOnly y confirmación de la nueva contraseña.
 
@@ -31,7 +31,7 @@ El código está en `functions/menupro-lifecycle.ts`. El servicio se ejecuta en 
 1. Genera los avisos de demo, vencimiento, gracia, suspensión y conservación, sin duplicarlos.
 2. Procesa la retención del contenido y el vencimiento de señales contra abuso.
 3. Envía los avisos por Resend mediante el endpoint privado de Next.js; utiliza reservas temporales y claves de idempotencia para evitar duplicados durante los reintentos.
-4. Con Mercado Pago configurado, concilia los importes siguientes cuando termina un descuento o cambia el plan.
+4. Con Mercado Pago configurado, recupera avisos perdidos con reservas y paginación, acredita cada cobro una sola vez y sincroniza los importes siguientes. Los envíos y la conciliación se ejecutan en paralelo.
 
 `pnpm exec node scripts/configure-business-worker.mjs` vincula el secreto privado con su hash, prepara la función y el horario y verifica una ejecución. Comprueba que `.env.local` y el proyecto vinculado coincidan. Conserva los estados existentes de correos y pagos; para habilitar correos usa `--enable-email --app-url=https://www.menupro.cl` después de desplegar Next y verificar Resend. No habilita cobros. Consultar `correos-resend.md` para dominios, remitente y SMTP de autenticación.
 
@@ -44,13 +44,13 @@ Aplicación **MenuPro** creada el 1 de noviembre de 2026, ID `3623413345304006`.
 1. Crear o seleccionar la aplicación de Mercado Pago de Chile y sus credenciales de prueba.
 2. Configurar en el servidor `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET`, `MENUPRO_WORKER_SECRET` y una `APP_URL` pública HTTPS.
 3. Registrar `/api/payments/mercadopago/webhook` para los eventos `subscription_preapproval`, `subscription_authorized_payment` y `payment`.
-4. Configurar también las credenciales de Mercado Pago como secretos del backend para la conciliación horaria. Nunca incluirlas en variables públicas ni archivos versionados.
+4. Configurar MENUPRO_APP_URL y el mismo modo de cobros en el mantenimiento. La credencial de Mercado Pago permanece en Next/Vercel; no se necesita en InsForge. Nunca incluirla en variables públicas ni archivos versionados.
 5. Habilitar `MENUPRO_BILLING_MODE=test` en ambos servicios y probar autorización, primer cobro diferido, renovación, rechazo, cancelación, cambio de importe y devoluciones con las cuentas de prueba del proveedor.
 6. Habilitar producción únicamente después de revisar los resultados y autorizar el inicio de cobros reales.
 
 Mientras no esté configurado, el panel permite consultar precios y la oferta, informa que la contratación online todavía no está disponible y no simula un pago exitoso. Las demos, permisos y transferencias verificadas pueden operar sin activar Mercado Pago.
 
-El registro descargable de un pago es un comprobante del servicio y no sustituye una boleta o factura tributaria. La emisión fiscal automática no forma parte de esta integración.
+El registro descargable de un pago es un comprobante del servicio y no sustituye la boleta de honorarios del SII. La emisión fiscal automática no forma parte de esta integración.
 
 ## Verificación
 

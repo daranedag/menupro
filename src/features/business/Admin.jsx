@@ -4,6 +4,7 @@ import DashboardLayout from '@/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/api/client';
 import { Button, Input } from '@/components/ui';
+import FiscalAdmin from './FiscalAdmin';
 
 export default function Admin() {
   const { user } = useAuth();
@@ -70,12 +71,13 @@ export default function Admin() {
       <div className="flex flex-wrap gap-4"><label className="text-sm">Plan<select aria-label="Plan del pago por transferencia" value={bank.planId} onChange={event => setBank(p => ({ ...p, planId: event.target.value }))} className="ml-2 rounded border p-2"><option value="local">Local</option><option value="grupo">Grupo</option></select></label>
         <label className="text-sm">Período<select aria-label="Período del pago por transferencia" value={bank.cycle} onChange={event => setBank(p => ({ ...p, cycle: event.target.value }))} className="ml-2 rounded border p-2"><option value="monthly">Mensual</option><option value="annual">Anual</option></select></label></div>
       <Input label="Referencia única del comprobante" name="bankReference" value={bank.reference} onChange={event => setBank(p => ({ ...p, reference: event.target.value }))} minLength={4} maxLength={200} required forceLight />
-      <Input label="Monto recibido en CLP, IVA incluido" name="bankGrossAmount" type="number" min={1} step={1} value={bank.grossAmount} onChange={event => setBank(p => ({ ...p, grossAmount: event.target.value }))} required forceLight />
+      <Input label="Monto efectivamente recibido en CLP, descontando la retención del receptor si corresponde" name="bankGrossAmount" type="number" min={1} step={1} value={bank.grossAmount} onChange={event => setBank(p => ({ ...p, grossAmount: event.target.value }))} required forceLight />
       <Input label="Detalle de la verificación" name="bankReason" value={bank.reason} onChange={event => setBank(p => ({ ...p, reason: event.target.value }))} minLength={5} maxLength={1000} required forceLight />
       <Button disabled={busy} type="submit">Confirmar transferencia recibida</Button>
     </form>
     <section className="rounded-xl border bg-white p-5"><h3 className="text-lg font-semibold">Negocios y suscripciones</h3><div className="mt-4 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr><th className="p-2">Negocio</th><th className="p-2">Propietario</th><th className="p-2">Plan</th><th className="p-2">Acceso</th></tr></thead>
       <tbody>{(overview?.businesses ?? []).map(b => <tr key={b.id} className="border-t"><td className="p-2">{b.name}</td><td className="p-2">{b.owner_email || 'Invitación pendiente'}</td><td className="p-2">{b.plan_id}</td><td className="p-2">{b.has_access ? 'Vigente' : 'Sin acceso pagado'}</td></tr>)}</tbody></table></div></section>
     <section className="rounded-xl border bg-white p-5"><h3 className="text-lg font-semibold">Actividad administrativa</h3><ul className="mt-3 divide-y">{(overview?.events ?? []).map(event => <li key={event.id} className="py-3 text-sm"><p>{event.event} · {new Date(event.created_at).toLocaleString('es-CL')}</p><p className="mt-1 break-all text-slate-500">{event.details?.reason || event.details?.payment_id || ''}</p></li>)}</ul></section>
+    <FiscalAdmin />
   </div></DashboardLayout>;
 }

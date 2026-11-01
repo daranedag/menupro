@@ -125,6 +125,24 @@ export async function handleBusinessApi(request: Request, path: string[], client
   if (path[0] === 'billing') return handleBillingApi(request, path, client, user, context);
   if (path[0] === 'admin') {
     if (!context.is_admin) throw new HttpError('No tienes permiso para administrar MenuPro.', 403);
+    if (route === 'admin/fiscal' && method === 'GET') {
+      const params = new URL(request.url).searchParams;
+      const status = z.enum(['pending', 'issued', 'all']).parse(params.get('status') ?? 'pending');
+      const offset = z.coerce.number().int().min(0).max(100000).parse(params.get('offset') ?? 0);
+      let documentQuery = client.database.from('menupro_fiscal_documents').select('*', { count: 'exact' });
+      if (status !== 'all') documentQuery = documentQuery.eq('status', status);
+      const [documents, jobs] = await Promise.all([
+        documentQuery.order('created_at', { ascending: true }).range(offset, offset + 49),
+        client.database.from('menupro_reconciliation_jobs').select('request_id,last_checked_at,last_success_at,failures,next_attempt_at').order('failures', { ascending: false }).limit(100),
+      ]);
+      check(documents.error); check(jobs.error);
+      return respond({ documents: documents.data, total: documents.count, jobs: jobs.data });
+    }
+    if (route === 'admin/fiscal/issue' && method === 'POST') {
+      const input = z.object({ paymentId: z.string().min(1).max(250), folio: z.string().regex(/^[0-9]{1,20}$/),
+        issuedDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }).strict().parse(await readJson(request));
+      return respond(await rpc(client, 'menupro_admin_issue_honorarium', { p_payment_id: input.paymentId, p_folio: input.folio, p_issued_date: input.issuedDate }));
+    }
     if (route === 'admin/overview' && method === 'GET') return respond({ ...(await rpc(client, 'menupro_admin_overview', {})), payments: paymentReadiness() });
     if (route === 'admin/review' && method === 'POST') {
       const input = z.object({ claimId: uuid, approve: z.boolean(), reason: z.string().trim().min(5).max(1000) }).strict().parse(await readJson(request));
