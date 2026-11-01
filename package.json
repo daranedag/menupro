@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.mjs",
     "test:auth": "playwright test --config=playwright.auth.config.ts",
+    "payments:check": "node --env-file-if-exists=.env.local scripts/check-mercadopago.mjs",
     "db:status": "insforge db migrations list",
     "db:migrate": "insforge db migrations up --all",
     "db:new": "insforge db migrations new"

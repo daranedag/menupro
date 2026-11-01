@@ -30,14 +30,16 @@ El código está en `functions/menupro-lifecycle.ts`. El servicio se ejecuta en 
 
 1. Genera los avisos de demo, vencimiento, gracia, suspensión y conservación, sin duplicarlos.
 2. Procesa la retención del contenido y el vencimiento de señales contra abuso.
-3. Puede enviar avisos mediante el servicio de correos de InsForge; utiliza reservas temporales para evitar que dos ejecuciones envíen la misma tanda simultáneamente.
+3. Envía los avisos por Resend mediante el endpoint privado de Next.js; utiliza reservas temporales y claves de idempotencia para evitar duplicados durante los reintentos.
 4. Con Mercado Pago configurado, concilia los importes siguientes cuando termina un descuento o cambia el plan.
 
-`pnpm exec node scripts/configure-business-worker.mjs` vincula el secreto privado con su hash, prepara la función y el horario y verifica una ejecución. Comprueba que `.env.local` y el proyecto vinculado coincidan. Mantiene correos y pagos deshabilitados al configurar; habilitarlos requiere una acción explícita posterior.
+`pnpm exec node scripts/configure-business-worker.mjs` vincula el secreto privado con su hash, prepara la función y el horario y verifica una ejecución. Comprueba que `.env.local` y el proyecto vinculado coincidan. Conserva los estados existentes de correos y pagos; para habilitar correos usa `--enable-email --app-url=https://www.menupro.cl` después de desplegar Next y verificar Resend. No habilita cobros. Consultar `correos-resend.md` para dominios, remitente y SMTP de autenticación.
 
-El secreto privado da acceso exclusivamente a RPC de operaciones de MenuPro, no es una clave administrativa de InsForge y nunca debe publicarse. El envío automático de correos, si se habilita, utiliza la credencial administrada del backend dentro de la función; no se agrega una clave administrativa a Next.js o Vercel.
+El secreto privado da acceso exclusivamente a RPC de operaciones de MenuPro y a su despachador de avisos; no es una clave administrativa de InsForge y nunca debe publicarse. La clave de Resend permanece en Vercel. No se agrega una clave administrativa de InsForge a Next.js o Vercel.
 
 ## Configuración de Mercado Pago
+
+Aplicación **MenuPro** creada el 1 de noviembre de 2026, ID `3623413345304006`. La credencial de prueba respondió HTTP 200 a la API de suscripciones y quedó guardada en local y Vercel; la firma está guardada como secreto en Vercel. La contratación sigue deshabilitada. Consultar `mercadopago.md` para el estado actualizado y las pruebas pendientes.
 
 1. Crear o seleccionar la aplicación de Mercado Pago de Chile y sus credenciales de prueba.
 2. Configurar en el servidor `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET`, `MENUPRO_WORKER_SECRET` y una `APP_URL` pública HTTPS.
@@ -63,8 +65,8 @@ Las ocho migraciones comerciales se aplicaron a DieGui Dev después de probarlas
 
 ## Pendientes de activación externa
 
-- Credenciales de prueba de Mercado Pago y una dirección pública HTTPS para sus notificaciones.
+- Completar la prueba de checkout y notificaciones de Mercado Pago con su credencial de prueba y la firma configurada; después activar las credenciales productivas.
 - Verificación del servicio de correo transaccional y habilitación explícita de envíos automáticos.
-- Publicación de la aplicación y configuración de sus variables privadas en el alojamiento definitivo.
+- Validar el recorrido comercial en la aplicación ya publicada en Vercel y aplicar nuevos despliegues al modificar variables.
 
 La revisión de coincidencias está disponible como proceso administrativo. No se ha contratado un proveedor de SMS ni activado una verificación telefónica automática.

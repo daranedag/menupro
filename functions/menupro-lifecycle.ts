@@ -1,8 +1,7 @@
 // Runs on InsForge, with no broad database credential in the Next.js app.
-import { createClient, createAdminClient } from 'npm:@insforge/sdk@1.5.2';
+import { createClient } from 'npm:@insforge/sdk@1.5.2';
 
 const json = (body: unknown, status = 200) => Response.json(body, { status });
-const escape = (value: string) => value.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 
 export default async function(request: Request): Promise<Response> {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204 });
@@ -24,21 +23,15 @@ export default async function(request: Request): Promise<Response> {
     const lifecycle = await rpc('menupro_run_lifecycle');
     const expiredHistory = await rpc('menupro_expire_abuse_history');
     let emailed = 0; let emailFailures = 0;
+    let deferred = 0;
     if (Deno.env.get('MENUPRO_EMAIL_ENABLED') === 'true') {
-      const apiKey = Deno.env.get('API_KEY');
-      if (!apiKey) throw new Error('Email service credential is not configured');
-      const mail = createAdminClient({ baseUrl, apiKey });
-      const notices = await rpc('menupro_claim_notifications');
-      for (const notice of notices) {
-        try {
-          const { data, error } = await mail.emails.send({ to: notice.email, from: 'MenuPro', subject: notice.subject,
-            html: `<p>${escape(notice.message)}</p><p>Ingresa a tu cuenta de MenuPro para revisar los detalles.</p>` });
-          const skipped = (data as { skipped?: string[] } | null)?.skipped ?? [];
-          const sent = !error && !skipped.includes(notice.email);
-          await rpc('menupro_complete_notification', { p_notification_id: notice.id, p_token: notice.token, p_sent: sent });
-          if (sent) emailed++; else emailFailures++;
-        } catch { emailFailures++; await rpc('menupro_complete_notification', { p_notification_id: notice.id, p_token: notice.token, p_sent: false }); }
-      }
+      const app = new URL(Deno.env.get('MENUPRO_APP_URL') || '');
+      if (app.protocol !== 'https:') throw new Error('MenuPro email delivery requires HTTPS');
+      const response = await fetch(new URL('/api/internal/notifications', app), { method: 'POST',
+        headers: { 'x-menupro-worker-secret': secret }, redirect: 'error', signal: AbortSignal.timeout(55000) });
+      if (!response.ok) throw new Error('Resend notification delivery failed: ' + response.status);
+      const result = await response.json();
+      emailed = result.emailed; emailFailures = result.emailFailures; deferred = result.deferred;
     }
     // Reconcile the next recurring amount after the introductory discount ends,
     // after an upgrade, or when the owner schedules a downgrade.
@@ -61,7 +54,7 @@ export default async function(request: Request): Promise<Response> {
         if (Number(existing.auto_recurring.transaction_amount) !== gross) await mp('/preapproval/' + s.provider_subscription_id, { auto_recurring: { transaction_amount: gross, currency_id: 'CLP' } });
       }
     }
-    return json({ ...lifecycle, expiredHistory, emailed, emailFailures });
+    return json({ ...lifecycle, expiredHistory, emailed, emailFailures, deferred });
   } catch (error) {
     console.error(error instanceof Error ? error.message : 'MenuPro lifecycle failed');
     return json({ error: 'No se pudo completar el mantenimiento de MenuPro.' }, 500);

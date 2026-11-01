@@ -28,6 +28,8 @@ La aplicación incluye cuentas de negocio con integrantes e invitaciones, planes
 
 Las reglas aprobadas están en `docs/reglas-de-negocio.md`. La operación y configuración comercial están en `docs/operacion-comercial.md`.
 
+La aplicación de Mercado Pago **MenuPro** (`3623413345304006`) y los pasos de integración están en `docs/mercadopago.md`. `pnpm payments:check` comprueba el acceso a la API de suscripciones sin crear cobros ni mostrar credenciales.
+
 ## Estructura
 
 ```text
@@ -111,10 +113,11 @@ Configura estas variables en el proyecto de Vercel:
 | `MENUPRO_EMAIL_ENABLED` | `false` hasta verificar el servicio de correos transaccionales |
 | `RESEND_API_KEY` | Clave privada de Resend con permiso de envío |
 | `RESEND_FROM` | Remitente de un dominio verificado en Resend; formato `MenuPro <correo@dominio-verificado>` |
+| `RESEND_REPLY_TO` | Dirección opcional para recibir respuestas, por ejemplo la casilla Gmail del negocio |
 
-Las invitaciones de equipo y de demo asistida se envían por la [API de Resend](https://resend.com/docs/api-reference/emails/send-email). Para activarlas, verifica el dominio remitente en Resend, configura `RESEND_API_KEY` y `RESEND_FROM` como variables privadas en Vercel y cambia `MENUPRO_EMAIL_ENABLED` a `true`. Repite la configuración en `.env.local` para probar localmente. Reconstruye el despliegue después de cambiar las variables. Mientras no se configure Resend, deja el envío en `false`.
+Las invitaciones y los recordatorios se envían por la API de Resend. Para activarlos, verifica el dominio remitente en Resend, configura `RESEND_API_KEY` y `RESEND_FROM` como variables privadas en Vercel y cambia `MENUPRO_EMAIL_ENABLED` a `true`. Repite la configuración en `.env.local` para probar localmente. Reconstruye el despliegue después de cambiar las variables. Mientras no se configure Resend, deja el envío en `false`. El horario de InsForge entrega los avisos mediante el endpoint privado de Next; no necesita otra clave de Resend. La configuración SMTP para los correos de autenticación y los pasos de activación están en `docs/correos-resend.md`.
 
-La interfaz confirma si el proveedor aceptó el correo o muestra el enlace para compartirlo si no pudo enviarse. La invitación se conserva aunque Resend falle; aceptarla siempre exige iniciar sesión con el correo verificado del destinatario. Cada envío usa una clave de idempotencia basada en la invitación para evitar duplicados al repetir la misma solicitud al proveedor. Estos ajustes no cambian los correos de verificación de cuenta ni de recuperación de contraseña de InsForge.
+La interfaz confirma si el proveedor aceptó el correo o muestra el enlace para compartirlo si no pudo enviarse. La invitación se conserva aunque Resend falle; aceptarla siempre exige iniciar sesión con el correo verificado del destinatario. Cada envío usa una clave de idempotencia basada en la invitación para evitar duplicados al repetir la misma solicitud al proveedor. Verificación y recuperación siguen usando la autenticación de InsForge; su transporte pasa a Resend al aplicar la configuración SMTP documentada.
 
 No subas `.env.local`, `.insforge` ni claves administrativas. Los previews también deben apuntar al backend elegido expresamente.
 
