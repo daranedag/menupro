@@ -7,12 +7,12 @@ function Spinner({ size = 'md', label = '' }) {
   };
 
   return (
-    <div className="flex items-center justify-center gap-3">
+    <div role="status" className="flex items-center justify-center gap-3">
       <div
-        className={`${sizes[size] || sizes.md} border-gray-200 border-t-blue-600 rounded-full animate-spin`}
-        aria-label={label || 'Cargando'}
+        className={`${sizes[size] || sizes.md} border-line border-t-brand rounded-full animate-spin`}
+        aria-hidden="true"
       />
-      {label && <span className="text-sm text-gray-600">{label}</span>}
+      <span className={label ? 'text-sm text-muted' : 'sr-only'}>{label || 'Cargando'}</span>
     </div>
   );
 }

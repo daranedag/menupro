@@ -52,30 +52,30 @@ export default function Billing() {
     catch (failure) { setError(failure.message); } finally { setBusy(false); }
   }
   const recurring = subscription?.provider_subscription_id && !subscription.cancel_at_period_end;
-  return <DashboardLayout><div className="mx-auto max-w-5xl space-y-6 text-slate-900">
-    <div><h2 className="text-2xl font-bold dark:text-white">Suscripción y pagos</h2><p className="mt-2 text-slate-500">Tu cuenta, tus restaurantes y tus QR se conservan al contratar.</p></div>
+  return <DashboardLayout><div className="mx-auto max-w-5xl space-y-6 text-ink">
+    <div><h2 className="text-2xl font-bold dark:text-white">Suscripción y pagos</h2><p className="mt-2 text-muted">Tu cuenta, tus restaurantes y tus QR se conservan al contratar.</p></div>
     {error && <p role="alert" className="rounded-lg bg-red-50 p-4 text-red-700">{error}</p>}
     {message && <p role="status" className="rounded-lg bg-emerald-50 p-4 text-emerald-900">{message}</p>}
-    <section className="rounded-xl border bg-white p-5"><h3 className="text-lg font-semibold">Tu plan {subscription?.plan_name}</h3>
-      <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3"><div><dt className="text-slate-500">Estado</dt><dd>{states[subscription?.effective_status] || 'Consultando…'}</dd></div>
-        <div><dt className="text-slate-500">Demo hasta</dt><dd>{subscription?.trial_ends_at ? date(subscription.trial_ends_at) : 'Sin iniciar'}</dd></div>
-        <div><dt className="text-slate-500">Período pagado hasta</dt><dd>{date(subscription?.current_period_end)}</dd></div></dl>
+    <section className="rounded-xl border bg-surface p-5"><h3 className="text-lg font-semibold">Tu plan {subscription?.plan_name}</h3>
+      <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3"><div><dt className="text-muted">Estado</dt><dd>{states[subscription?.effective_status] || 'Consultando…'}</dd></div>
+        <div><dt className="text-muted">Demo hasta</dt><dd>{subscription?.trial_ends_at ? date(subscription.trial_ends_at) : 'Sin iniciar'}</dd></div>
+        <div><dt className="text-muted">Período pagado hasta</dt><dd>{date(subscription?.current_period_end)}</dd></div></dl>
       {subscription?.cancel_at_period_end && <p className="mt-3 text-sm">La renovación automática está desactivada.</p>}
       {owner && recurring && <button disabled={busy} className="mt-4 text-sm text-red-700 underline" onClick={() => {
         if (window.confirm('¿Cancelar la renovación automática? Mantendrás el acceso hasta terminar el período pagado.')) run(() => api.post('/api/billing/cancel'));
       }}>Cancelar renovación automática</button>}
-      <a href="/api/business/export" className="ml-0 mt-4 block text-sm text-indigo-700 underline">Descargar mis datos</a>
+      <a href="/api/business/export" className="ml-0 mt-4 block text-sm text-brand underline">Descargar mis datos</a>
     </section>
-    <div className="grid gap-5 sm:grid-cols-2">{(data?.plans ?? []).map(plan => <section key={plan.id} className={`rounded-xl border bg-white p-5 ${planId === plan.id ? 'ring-2 ring-indigo-500' : ''}`}>
+    <div className="grid gap-5 sm:grid-cols-2">{(data?.plans ?? []).map(plan => <section key={plan.id} className={`rounded-xl border bg-surface p-5 ${planId === plan.id ? 'ring-2 ring-brand' : ''}`}>
       <h3 className="text-xl font-bold">{plan.name}</h3><p className="mt-2 text-2xl font-semibold">{money(cycle === 'annual' ? plan.annual_net : plan.monthly_net)} <span className="text-sm font-normal">brutos / {cycle === 'annual' ? 'año' : 'mes'}</span></p>
       <p className="mt-3 text-sm">{plan.max_restaurants === 1 ? '1 restaurante' : `Hasta ${plan.max_restaurants} restaurantes`}. Cartas y platos ilimitados, QR, personalización y PDF.</p>
       {owner && <Button className="mt-4" disabled={busy || !planAvailable(plan.id, cycle, data?.availability)} onClick={() => { setPlanId(plan.id); setError(''); }}>{plan.id === 'grupo' && !data?.availability?.grupo_enabled ? 'Grupo · próximamente' : `Elegir ${plan.name}`}</Button>}
     </section>)}</div>
     {owner && <BillingProfile profile={data?.profile} onSaved={load} onDirty={setProfileDirty} />}
-    {owner ? <section className="rounded-xl border bg-white p-5"><h3 className="text-lg font-semibold">{upgrade ? 'Mejorar mi plan' : 'Continuar con MenuPro'}</h3>
+    {owner ? <section className="rounded-xl border bg-surface p-5"><h3 className="text-lg font-semibold">{upgrade ? 'Mejorar mi plan' : 'Continuar con MenuPro'}</h3>
       <label className="mt-4 block text-sm font-medium">Modalidad de pago <select value={cycle} onChange={event => setCycle(event.target.value)} className="ml-2 rounded border p-2" disabled={busy}>
         <option value="monthly">Mensual</option><option value="annual" disabled={!data?.availability?.annual_enabled}>{data?.availability?.annual_enabled ? 'Anual · pagas 10 meses y usas 12' : 'Anual · próximamente'}</option></select></label>
-      {quote ? <div className="mt-4 rounded-lg bg-slate-50 p-4 text-sm"><p>Honorario bruto: {money(quote.honorarium_gross)}</p><p>Retención del receptor: {money(quote.withholding_amount)} {quote.withholding_party === 'recipient' ? `(${Number((quote.retention_rate * 100).toFixed(2))}%)` : '(PPM a cargo del emisor)'}</p>
+      {quote ? <div className="mt-4 rounded-lg bg-canvas p-4 text-sm"><p>Honorario bruto: {money(quote.honorarium_gross)}</p><p>Retención del receptor: {money(quote.withholding_amount)} {quote.withholding_party === 'recipient' ? `(${Number((quote.retention_rate * 100).toFixed(2))}%)` : '(PPM a cargo del emisor)'}</p>
         <p className="mt-2 text-lg font-bold">{upgrade ? 'Diferencia por este período' : 'Primer cobro'}: {money(quote.gross_amount)}</p>
         <p className="mt-2">Inicio previsto: {date(quote.starts_at)}. {cycle === 'annual' ? 'El año se paga completo en un cobro.' : 'Se cobra cada mes.'}</p>
         {quote.welcome && <p className="mt-2 font-medium text-emerald-800">Bienvenida aplicada: {cycle === 'annual' ? '10% sobre tu primer año.' : '20% en las primeras tres mensualidades.'}</p>}
@@ -86,7 +86,7 @@ export default function Billing() {
         const result = await api.post('/api/billing/checkout', { planId, cycle, purpose, payerEmail: email || user.email, acceptRenewal: accepted });
         window.location.assign(result.data.url); return result;
       }); }}>
-        <Input label="Correo de tu cuenta de Mercado Pago" name="payerEmail" type="email" value={email || user?.email || ''} onChange={event => setEmail(event.target.value)} required forceLight />
+        <Input label="Correo de tu cuenta de Mercado Pago" name="payerEmail" type="email" value={email || user?.email || ''} onChange={event => setEmail(event.target.value)} required />
         <label className="flex items-start gap-2 text-sm"><input type="checkbox" disabled={!quote || busy || profileDirty} checked={accepted} onChange={event => setAccepted(event.target.checked)} required className="mt-1" />
           <span>{upgrade ? 'Autorizo el cobro de la diferencia mostrada y la nueva tarifa en las siguientes renovaciones.' : 'Autorizo la renovación automática con los importes y la modalidad mostrados. Puedo cancelarla antes de la siguiente renovación.'}</span></label>
         {(!data?.profile || profileDirty) && <p className="text-sm text-amber-900">Guarda los datos para la boleta antes de continuar.</p>}
@@ -98,23 +98,23 @@ export default function Billing() {
           <option value="">Seleccionar restaurante</option>{user.restaurants.filter(r => !r.archived_at).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
         <Button type="submit" disabled={busy || !restaurantId}>Programar reducción</Button>
       </form>}
-    </section> : <p className="rounded-xl border bg-white p-5">El propietario del negocio administra los pagos y la suscripción.</p>}
-    {owner && (data?.checkouts ?? []).filter(c => ['pending', 'ready', 'authorized'].includes(c.status)).map(checkout => <section key={checkout.id} className="rounded-xl border bg-white p-5">
+    </section> : <p className="rounded-xl border bg-surface p-5">El propietario del negocio administra los pagos y la suscripción.</p>}
+    {owner && (data?.checkouts ?? []).filter(c => ['pending', 'ready', 'authorized'].includes(c.status)).map(checkout => <section key={checkout.id} className="rounded-xl border bg-surface p-5">
       <h3 className="font-semibold">Contratación pendiente · {money(checkout.gross_amount)}</h3><p className="mt-2 text-sm">El acceso pagado se activa cuando se confirma el cobro.</p>
-      <div className="mt-3 flex flex-wrap gap-4">{checkout.checkout_url && <a href={checkout.checkout_url} className="text-sm text-indigo-700 underline">Continuar contratación</a>}
-        <button disabled={busy} className="text-sm text-indigo-700 underline" onClick={() => run(() => api.post('/api/billing/refresh', { requestId: checkout.id }))}>Consultar estado</button>
+      <div className="mt-3 flex flex-wrap gap-4">{checkout.checkout_url && <a href={checkout.checkout_url} className="text-sm text-brand underline">Continuar contratación</a>}
+        <button disabled={busy} className="text-sm text-brand underline" onClick={() => run(() => api.post('/api/billing/refresh', { requestId: checkout.id }))}>Consultar estado</button>
         {['pending', 'ready'].includes(checkout.status) && <button disabled={busy} className="text-sm text-red-700 underline" onClick={() => run(() => api.post('/api/billing/abandon', { requestId: checkout.id }))}>Anular contratación pendiente</button>}</div>
     </section>)}
-    {owner && <section className="rounded-xl border bg-white p-5"><h3 className="text-lg font-semibold">Boletas de honorarios</h3>
+    {owner && <section className="rounded-xl border bg-surface p-5"><h3 className="text-lg font-semibold">Boletas de honorarios</h3>
       {!data?.documents?.length ? <p className="mt-3 text-sm">Las boletas aparecerán después de confirmar cada pago.</p> : <ul className="mt-3 divide-y">{data.documents.map(document => <li key={document.payment_id} className="py-3 text-sm">
         <p>{document.status === 'issued' ? `Boleta N.º ${document.folio} · ${document.issued_date}` : 'Pendiente de emisión manual'} · Bruto {money(document.honorarium_gross)} · Retención {money(document.withholding_amount)}</p>
-        <p className="mt-1 text-slate-600">Pago: {document.payment_id}. {document.review_required ? 'Documento en revisión administrativa.' : document.email_accepted_at ? 'Boleta enviada por correo.' : 'La boleta se emite manualmente y se envía por correo al estar disponible.'}</p>
-        {document.storage_key && <a className="mt-2 inline-block text-indigo-700 underline" href={'/api/billing/document/' + encodeURIComponent(document.payment_id)}>Descargar boleta PDF</a>}
+        <p className="mt-1 text-muted">Pago: {document.payment_id}. {document.review_required ? 'Documento en revisión administrativa.' : document.email_accepted_at ? 'Boleta enviada por correo.' : 'La boleta se emite manualmente y se envía por correo al estar disponible.'}</p>
+        {document.storage_key && <a className="mt-2 inline-block text-brand underline" href={'/api/billing/document/' + encodeURIComponent(document.payment_id)}>Descargar boleta PDF</a>}
       </li>)}</ul>}
     </section>}
-    <section className="rounded-xl border bg-white p-5"><h3 className="text-lg font-semibold">Historial de pagos</h3>
-      {!data?.payments?.length ? <p className="mt-3 text-sm text-slate-500">No hay pagos registrados.</p> : <div className="mt-4 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr><th className="p-2">Fecha</th><th className="p-2">Monto</th><th className="p-2">Estado</th><th className="p-2">Referencia</th></tr></thead>
-        <tbody>{data.payments.map(payment => <tr key={payment.provider_payment_id} className="border-t"><td className="p-2">{date(payment.approved_at || payment.created_at)}</td><td className="p-2">{money(payment.amount)}</td><td className="p-2">{paymentStates[payment.status] || 'En revisión'}</td><td className="p-2"><span>{payment.provider_payment_id}</span><a className="ml-3 whitespace-nowrap text-indigo-700 underline" href={'/api/billing/receipt/' + encodeURIComponent(payment.provider_payment_id)}>Descargar registro</a></td></tr>)}</tbody></table></div>}
+    <section className="rounded-xl border bg-surface p-5"><h3 className="text-lg font-semibold">Historial de pagos</h3>
+      {!data?.payments?.length ? <p className="mt-3 text-sm text-muted">No hay pagos registrados.</p> : <div className="mt-4 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr><th className="p-2">Fecha</th><th className="p-2">Monto</th><th className="p-2">Estado</th><th className="p-2">Referencia</th></tr></thead>
+        <tbody>{data.payments.map(payment => <tr key={payment.provider_payment_id} className="border-t"><td className="p-2">{date(payment.approved_at || payment.created_at)}</td><td className="p-2">{money(payment.amount)}</td><td className="p-2">{paymentStates[payment.status] || 'En revisión'}</td><td className="p-2"><span>{payment.provider_payment_id}</span><a className="ml-3 whitespace-nowrap text-brand underline" href={'/api/billing/receipt/' + encodeURIComponent(payment.provider_payment_id)}>Descargar registro</a></td></tr>)}</tbody></table></div>}
     </section>
   </div></DashboardLayout>;
 }

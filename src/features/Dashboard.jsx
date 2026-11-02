@@ -76,17 +76,17 @@ function DashboardHome() {
       <div>
         <div className="mb-6">
           <h2 className={`text-3xl font-bold ${
-            isDark ? 'text-white' : 'text-gray-800'
+            isDark ? 'text-white' : 'text-ink'
           }`}>
             Bienvenido, {user?.name || 'Usuario'}
           </h2>
-          <p className={isDark ? 'text-gray-400 mt-1' : 'text-gray-600 mt-1'}>{user?.activeRestaurantName || user?.restaurantName}</p>
+          <p className={isDark ? 'text-muted mt-1' : 'text-muted mt-1'}>{user?.activeRestaurantName || user?.restaurantName}</p>
         </div>
 
         {isLoading && (
           <Card>
             <div className="py-8 text-center text-sm">
-              <p className={isDark ? 'text-gray-300' : 'text-gray-700'}>Cargando cartas...</p>
+              <Spinner label="Cargando cartas…" />
             </div>
           </Card>
         )}
@@ -99,63 +99,55 @@ function DashboardHome() {
           </Card>
         )}
 
-        {isLoading && (
-          <Card>
-            <div className="py-8 flex items-center justify-center">
-              <Spinner label="Cargando cartas..." />
-            </div>
-          </Card>
-        )}
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card hoverable>
             <div className="flex items-center justify-between mb-2">
               <h3 className={`text-lg font-semibold ${
-                isDark ? 'text-gray-200' : 'text-gray-700'
+                isDark ? 'text-muted' : 'text-ink'
               }`}>
                 Total Cartas
               </h3>
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <BookOpen className="text-blue-600" size={24} />
+              <div className="p-3 bg-brand-soft rounded-lg">
+                <BookOpen className="text-brand" size={24} />
               </div>
             </div>
-            <p className="text-4xl font-bold text-blue-600">{menus.length}</p>
+            <p className="text-4xl font-bold text-brand">{menus.length}</p>
             <p className={`text-sm mt-2 ${
-              isDark ? 'text-gray-400' : 'text-gray-500'
+              isDark ? 'text-muted' : 'text-muted'
             }`}>Cartas creadas</p>
           </Card>
 
           <Card hoverable>
             <div className="flex items-center justify-between mb-2">
               <h3 className={`text-lg font-semibold ${
-                isDark ? 'text-gray-200' : 'text-gray-700'
+                isDark ? 'text-muted' : 'text-ink'
               }`}>
                 Secciones
               </h3>
-              <div className="p-3 bg-emerald-100 rounded-lg">
-                <FolderOpen className="text-emerald-600" size={24} />
+              <div className="p-3 bg-brand-soft rounded-lg">
+                <FolderOpen className="text-brand" size={24} />
               </div>
             </div>
-            <p className="text-4xl font-bold text-emerald-600">{totalSections}</p>
+            <p className="text-4xl font-bold text-brand">{totalSections}</p>
             <p className={`text-sm mt-2 ${
-              isDark ? 'text-gray-400' : 'text-gray-500'
+              isDark ? 'text-muted' : 'text-muted'
             }`}>Categorías activas</p>
           </Card>
 
           <Card hoverable>
             <div className="flex items-center justify-between mb-2">
               <h3 className={`text-lg font-semibold ${
-                isDark ? 'text-gray-200' : 'text-gray-700'
+                isDark ? 'text-muted' : 'text-ink'
               }`}>
                 Total Platos
               </h3>
-              <div className="p-3 bg-violet-100 rounded-lg">
-                <UtensilsCrossed className="text-violet-600" size={24} />
+              <div className="p-3 bg-brand-soft rounded-lg">
+                <UtensilsCrossed className="text-brand" size={24} />
               </div>
             </div>
-            <p className="text-4xl font-bold text-violet-600">{totalDishes}</p>
+            <p className="text-4xl font-bold text-brand">{totalDishes}</p>
             <p className={`text-sm mt-2 ${
-              isDark ? 'text-gray-400' : 'text-gray-500'
+              isDark ? 'text-muted' : 'text-muted'
             }`}>En tu menú</p>
           </Card>
         </div>
@@ -165,14 +157,14 @@ function DashboardHome() {
             <div className="space-y-3">
               <a
                 href="/app/dashboard/menus/new"
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm hover:shadow-md"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-action text-white rounded-lg hover:bg-action-hover transition-colors font-medium shadow-sm hover:shadow-md"
               >
                 <Plus size={20} />
                 <span>Crear Nueva Carta</span>
               </a>
               <a
                 href="/app/dashboard/menus"
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium shadow-sm hover:shadow-md"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-action text-white rounded-lg hover:bg-action-hover transition-colors font-medium shadow-sm hover:shadow-md"
               >
                 <List size={20} />
                 <span>Gestionar Cartas</span>
@@ -181,7 +173,7 @@ function DashboardHome() {
                 href={user?.activeRestaurantSlug && menus[0]?.slug ? `/menu/${user.activeRestaurantSlug}/${menus[0].slug}` : '#'}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors font-medium shadow-sm hover:shadow-md"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-action text-white rounded-lg hover:bg-action-hover transition-colors font-medium shadow-sm hover:shadow-md"
                 aria-disabled={!user?.activeRestaurantSlug || !menus[0]?.slug}
               >
                 <Eye size={20} />
@@ -198,21 +190,21 @@ function DashboardHome() {
                     key={menu.id}
                     href={`/app/dashboard/menus/${menu.id}`}
                     className={`flex items-center justify-between py-3 border-b transition-colors rounded px-2 ${
-                      isDark ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-50'
+                      isDark ? 'border-line hover:bg-elevated' : 'border-line hover:bg-canvas'
                     }`}
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-2xl">{menu.icon}</span>
-                      <span className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{menu.name}</span>
+                      <span className={`font-medium ${isDark ? 'text-muted' : 'text-ink'}`}>{menu.name}</span>
                     </div>
-                    <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <span className={`text-sm ${isDark ? 'text-muted' : 'text-muted'}`}>
                       {menu.sections?.length || 0} secciones
                     </span>
                   </a>
                 ))}
               </div>
             ) : (
-              <p className={`text-center py-6 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              <p className={`text-center py-6 ${isDark ? 'text-muted' : 'text-muted'}`}>
                 No hay cartas creadas aún
               </p>
             )}
@@ -225,10 +217,10 @@ function DashboardHome() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
-                    <p className={isDark ? 'text-gray-200 font-semibold' : 'text-gray-800 font-semibold'}>
+                    <p className={isDark ? 'text-muted font-semibold' : 'text-ink font-semibold'}>
                       Plan {user?.subscriptionTier || 'actual'}
                     </p>
-                    <p className={isDark ? 'text-gray-400 text-sm' : 'text-gray-600 text-sm'}>
+                    <p className={isDark ? 'text-muted text-sm' : 'text-muted text-sm'}>
                       Restaurantes: {restaurantsCount}{hasRestaurantsLimit ? ` / ${maxRestaurants}` : ' sin límite'}
                     </p>
                   </div>

@@ -1,5 +1,18 @@
 @import "tailwindcss";
-@custom-variant dark (&:where(.dark, .dark *, html[data-marketing-theme="dark"] .marketing-site, html[data-marketing-theme="dark"] .marketing-site *));
+@custom-variant dark (&:where(.dark, .dark *, html[data-marketing-theme="dark"] .marketing-site, html[data-marketing-theme="dark"] .marketing-site *, html[data-marketing-theme="dark"] .app-site, html[data-marketing-theme="dark"] .app-site *));
+
+@theme inline {
+  --color-surface: var(--color-bg);
+  --color-canvas: var(--color-bg-soft);
+  --color-elevated: var(--color-bg-elevated);
+  --color-ink: var(--color-text);
+  --color-muted: var(--color-text-muted);
+  --color-line: var(--color-border);
+  --color-brand: var(--color-accent);
+  --color-brand-soft: var(--color-accent-soft);
+  --color-action: var(--marketing-button);
+  --color-action-hover: var(--color-accent-hover);
+}
 
 :root { --color-bg-soft: #f8fafc; --color-text: #0f172a; --color-accent: #4f46e5; }
 body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #0f172a; background: white; }
@@ -7,15 +20,16 @@ button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
 button:not(:disabled), summary { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
 a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid #6366f1; outline-offset: 3px; }
-.text-muted { color: #64748b; }
+.text-muted { color: var(--color-text-muted, #64748b); }
 .border-default { border-color: #e2e8f0; }
 .btn-primary { color: white; background: #4f46e5; }
 .legacy-content h1, .legacy-content h2, .legacy-content h3 { color: #0f172a; }
 
-/* Astro's landing palette stays local to marketing; the panel owns its theme. */
-.marketing-site {
+/* Shared MenuPro palette; restaurant colors are applied only inside menu previews. */
+.marketing-site, .app-site {
   --color-bg: #ffffff;
   --color-bg-soft: #f6f7f5;
+  --color-bg-elevated: #eef2ef;
   --color-text: #1a1a1a;
   --color-text-muted: #6b7280;
   --color-border: #e5e7eb;
@@ -29,9 +43,10 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid 
   -webkit-font-smoothing: antialiased;
   color-scheme: light;
 }
-html[data-marketing-theme="dark"] .marketing-site {
+html[data-marketing-theme="dark"] :is(.marketing-site, .app-site) {
   --color-bg: #0f1211;
   --color-bg-soft: #161a18;
+  --color-bg-elevated: #232b26;
   --color-text: #e5e7eb;
   --color-text-muted: #adb5b0;
   --color-border: #343e38;
@@ -39,6 +54,17 @@ html[data-marketing-theme="dark"] .marketing-site {
   --color-accent-soft: #1d3229;
   color-scheme: dark;
 }
+.app-site { min-height: 100vh; }
+@layer base {
+  .app-site :where(*, ::before, ::after) { border-color: var(--color-border); }
+  .app-site :where(input, textarea, select) { background: var(--color-bg); color: var(--color-text); }
+}
+.app-site :is(a, button, input, textarea, select):focus-visible { outline-color: var(--color-accent); }
+.auth-background {
+  background: radial-gradient(ellipse at 10% 10%, var(--color-accent-soft), transparent 60%), var(--color-bg-soft);
+}
+.auth-story { background: linear-gradient(145deg, #3f6b5b, #284738); }
+html[data-marketing-theme="dark"] .auth-story { background: linear-gradient(145deg, #1d3229, #161a18); }
 .marketing-site .text-muted { color: var(--color-text-muted); }
 .marketing-site .border-default { border-color: var(--color-border); }
 .marketing-site .btn-primary { background: var(--marketing-button); color: white; }

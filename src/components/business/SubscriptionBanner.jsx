@@ -16,7 +16,7 @@ export default function SubscriptionBanner() {
   else if (s.cancel_at_period_end && s.current_period_end) message = 'Renovación cancelada. Acceso hasta el ' + new Date(s.current_period_end).toLocaleDateString('es-CL') + '.';
   else if (s.courtesy_until && Date.parse(s.courtesy_until) > Date.now()) message = 'Tienes una cortesía hasta el ' + new Date(s.courtesy_until).toLocaleDateString('es-CL') + '.';
   if (!message) return null;
-  return <aside className="border-b border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-950" aria-label="Estado de tu suscripción">
+  return <aside className="border-b border-brand bg-brand-soft px-4 py-3 text-sm text-brand" aria-label="Estado de tu suscripción">
     <div className="container mx-auto flex flex-wrap items-center justify-between gap-3"><p>{message}</p>
       <Link href="/app/dashboard/billing" className="font-semibold underline">Ver mi suscripción</Link></div>
   </aside>;

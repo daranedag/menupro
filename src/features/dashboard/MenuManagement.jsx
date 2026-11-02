@@ -23,8 +23,8 @@ function MenuManagement() {
       <div>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Mis Cartas</h2>
-            <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Gestiona tus menús y cartas</p>
+            <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-ink'}`}>Mis Cartas</h2>
+            <p className={`mt-1 ${isDark ? 'text-muted' : 'text-muted'}`}>Gestiona tus menús y cartas</p>
           </div>
           <Link href="/app/dashboard/menus/new">
             <Button variant="primary">
@@ -44,14 +44,14 @@ function MenuManagement() {
           <Card padding="lg">
             <div className="text-center py-12">
               <div className="flex justify-center mb-4">
-                <div className="p-4 bg-blue-100 rounded-full">
-                  <BookOpen className="text-blue-600" size={48} />
+                <div className="p-4 bg-brand-soft rounded-full">
+                  <BookOpen className="text-brand" size={48} />
                 </div>
               </div>
-              <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+              <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-ink'}`}>
                 No tienes cartas creadas
               </h3>
-              <p className={`mb-6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`mb-6 ${isDark ? 'text-muted' : 'text-muted'}`}>
                 Crea tu primera carta para comenzar
               </p>
               <Link href="/app/dashboard/menus/new">
@@ -70,7 +70,7 @@ function MenuManagement() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
                       {menu.icon && <span className="text-3xl">{menu.icon}</span>}
-                      <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                      <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-ink'}`}>
                         {menu.name}
                       </h3>
                     </div>
@@ -85,10 +85,10 @@ function MenuManagement() {
                   </div>
 
                   {menu.description && (
-                    <p className={`text-sm mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{menu.description}</p>
+                    <p className={`text-sm mb-4 ${isDark ? 'text-muted' : 'text-muted'}`}>{menu.description}</p>
                   )}
 
-                  <div className={`flex items-center gap-4 text-sm mb-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <div className={`flex items-center gap-4 text-sm mb-4 ${isDark ? 'text-muted' : 'text-muted'}`}>
                     <span className="flex items-center gap-1">
                       <FolderOpen size={16} />
                       {menu.sections?.length || 0} secciones

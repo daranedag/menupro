@@ -66,10 +66,10 @@ function SectionForm() {
     <DashboardLayout>
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
-          <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+          <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-ink'}`}>
             {isEditing ? 'Editar Sección' : 'Nueva Sección'}
           </h2>
-          <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          <p className={`mt-1 ${isDark ? 'text-muted' : 'text-muted'}`}>
             Sección de: {menu.icon} {menu.name}
           </p>
         </div>
@@ -86,7 +86,7 @@ function SectionForm() {
             />
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-ink mb-2">
                 Icono / Emoji
               </label>
               <div className="flex gap-2">
@@ -95,7 +95,7 @@ function SectionForm() {
                   name="icon"
                   value={formData.icon}
                   onChange={handleChange}
-                  className="w-20 px-4 py-2 text-center text-2xl border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-20 px-4 py-2 text-center text-2xl border border-line rounded-lg focus:ring-2 focus:ring-brand"
                   maxLength="2"
                 />
                 <div className="flex-1">
@@ -105,7 +105,7 @@ function SectionForm() {
                         key={emoji}
                         type="button"
                         onClick={() => setFormData({ ...formData, icon: emoji })}
-                        className="text-2xl hover:bg-gray-100 p-2 rounded"
+                        className="text-2xl hover:bg-canvas p-2 rounded"
                       >
                         {emoji}
                       </button>
@@ -116,7 +116,7 @@ function SectionForm() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-ink mb-2">
                 Descripción (Opcional)
               </label>
               <textarea
@@ -125,7 +125,7 @@ function SectionForm() {
                 onChange={handleChange}
                 rows="3"
                 placeholder="Descripción de la sección"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-line rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 

@@ -29,14 +29,14 @@ function Modal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
       onClick={handleOverlayClick}
     >
-      <div className={`bg-white rounded-lg shadow-xl ${sizes[size]} w-full max-h-[90vh] overflow-hidden flex flex-col`}>
+      <div className={`bg-surface rounded-lg shadow-xl ${sizes[size]} w-full max-h-[90vh] overflow-hidden flex flex-col`}>
         {/* Header */}
         {title && (
           <div className="flex items-center justify-between p-6 border-b">
-            <h3 className="text-xl font-semibold text-gray-800">{title}</h3>
+            <h3 className="text-xl font-semibold text-ink">{title}</h3>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-muted hover:text-muted transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -52,7 +52,7 @@ function Modal({
         
         {/* Footer */}
         {footer && (
-          <div className="flex items-center justify-end gap-3 p-6 border-t bg-gray-50">
+          <div className="flex items-center justify-end gap-3 p-6 border-t bg-canvas">
             {footer}
           </div>
         )}

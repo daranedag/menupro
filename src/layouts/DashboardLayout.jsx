@@ -1,19 +1,16 @@
 'use client';
-import { useTheme } from '../contexts/ThemeContext';
 import Header from '../components/Header';
 import SubscriptionBanner from '@/components/business/SubscriptionBanner';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
 
 function DashboardLayout({ children }) {
-  const { theme } = useTheme();
   const { user } = useAuth();
   const path = usePathname();
   const readOnlyMenu = path.startsWith('/app/dashboard/menus') && !user?.canEdit;
-  const isDark = theme.mode === 'dark';
   
   return (
-    <div className={`flex flex-col min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
+    <div className="flex min-h-screen flex-col bg-canvas text-ink">
       <Header isPublic={false} />
       <SubscriptionBanner />
       

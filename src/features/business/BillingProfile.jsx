@@ -9,13 +9,13 @@ export default function BillingProfile({ profile, onSaved, onDirty }) {
   useEffect(() => { if (profile) { setForm({ rut: profile.rut, legalName: profile.legal_name, address: profile.address,
     commune: profile.commune, email: profile.email, withholdingParty: profile.withholding_party }); onDirty(false); } }, [profile, onDirty]);
   function change(key, value) { setNotice(''); onDirty(true); setForm(previous => ({ ...previous, [key]: value })); }
-  return <section className="rounded-xl border bg-white p-5"><h3 className="text-lg font-semibold">Datos para la boleta de honorarios</h3>
+  return <section className="rounded-xl border bg-surface p-5"><h3 className="text-lg font-semibold">Datos para la boleta de honorarios</h3>
     <p className="mt-2 text-sm">Emitimos boletas de honorarios manualmente. Ingresa los datos del receptor antes de contratar. No se emiten facturas en esta etapa.</p>
     <form className="mt-4 grid gap-4 sm:grid-cols-2" onSubmit={async event => { event.preventDefault(); setBusy(true); setError(''); setNotice('');
       try { await api.post('/api/billing/profile', form); await onSaved(); setNotice('Datos tributarios guardados.'); } catch (failure) { setError(failure.message); } finally { setBusy(false); }
     }}>
       {[['rut', 'RUT del receptor'], ['legalName', 'Nombre completo o razón social'], ['address', 'Domicilio tributario'], ['commune', 'Comuna'], ['email', 'Correo para la boleta']].map(([key, label]) =>
-        <Input key={key} label={label} name={key} type={key === 'email' ? 'email' : 'text'} value={form[key]} onChange={event => change(key, event.target.value)} required forceLight />)}
+        <Input key={key} label={label} name={key} type={key === 'email' ? 'email' : 'text'} value={form[key]} onChange={event => change(key, event.target.value)} required />)}
       <label className="text-sm font-medium">Modalidad tributaria<select name="withholdingParty" required value={form.withholdingParty} onChange={event => change('withholdingParty', event.target.value)} className="mt-2 w-full rounded border p-2">
         <option value="">Seleccionar modalidad</option>
         <option value="recipient">El receptor retiene y paga al SII</option><option value="emitter">El emisor declara y paga su PPM</option></select></label>

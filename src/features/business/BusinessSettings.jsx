@@ -32,33 +32,33 @@ export default function BusinessSettings() {
     try { const result = await action(); await reloadSession(); await load(); setMessage(typeof success === 'function' ? success(result) : success); }
     catch (failure) { setError(failure.message); } finally { setBusy(false); }
   }
-  return <DashboardLayout><div className="mx-auto max-w-4xl space-y-6 text-slate-900">
-    <div><h2 className="text-2xl font-bold dark:text-white">Mi negocio y equipo</h2><p className="mt-2 text-slate-500">Los restaurantes y la suscripción pertenecen al negocio. Cada integrante usa su propia cuenta.</p></div>
+  return <DashboardLayout><div className="mx-auto max-w-4xl space-y-6 text-ink">
+    <div><h2 className="text-2xl font-bold dark:text-white">Mi negocio y equipo</h2><p className="mt-2 text-muted">Los restaurantes y la suscripción pertenecen al negocio. Cada integrante usa su propia cuenta.</p></div>
     {error && <p role="alert" className="rounded-lg bg-red-50 p-4 text-red-700">{error}</p>}
     {message && <p role="status" className="rounded-lg bg-emerald-50 p-4 text-emerald-900">{message}</p>}
-    {(user?.invitations ?? []).map(invitation => <section key={invitation.id} className="rounded-xl border border-indigo-200 bg-indigo-50 p-5">
+    {(user?.invitations ?? []).map(invitation => <section key={invitation.id} className="rounded-xl border border-brand bg-brand-soft p-5">
       <h3 className="font-semibold">Invitación a {invitation.business_name}</h3><p className="my-2">Rol: {roles[invitation.role]}</p>
       <Button disabled={busy} onClick={() => run(() => api.post('/api/business/invitations/accept', { id: invitation.id }), 'Invitación aceptada.')}>Aceptar invitación</Button>
     </section>)}
-    <section className="rounded-xl border bg-white p-5"><h3 className="text-lg font-semibold">Datos del negocio</h3>
+    <section className="rounded-xl border bg-surface p-5"><h3 className="text-lg font-semibold">Datos del negocio</h3>
       <p className="mt-2">{user?.businesses?.find(b => b.id === businessId)?.name}</p>
       {owner && <form className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end" onSubmit={event => { event.preventDefault(); run(() => api.put('/api/business/name', { name }), 'Nombre actualizado.'); }}>
-        <Input label="Nuevo nombre del negocio" name="businessName" value={name} onChange={event => setName(event.target.value)} required maxLength={255} forceLight />
+        <Input label="Nuevo nombre del negocio" name="businessName" value={name} onChange={event => setName(event.target.value)} required maxLength={255} />
         <Button type="submit" disabled={busy || !name.trim()}>Guardar nombre</Button>
       </form>}
-      <a href="/api/business/export" className="mt-5 inline-block font-medium text-indigo-700 underline">Descargar mis datos</a>
+      <a href="/api/business/export" className="mt-5 inline-block font-medium text-brand underline">Descargar mis datos</a>
     </section>
-    <section className="rounded-xl border bg-white p-5"><h3 className="text-lg font-semibold">Restaurantes del negocio</h3>
+    <section className="rounded-xl border bg-surface p-5"><h3 className="text-lg font-semibold">Restaurantes del negocio</h3>
       <ul className="mt-3 divide-y">{(user?.restaurants ?? []).map(restaurant => <li key={restaurant.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
-        <div><p className="font-medium">{restaurant.name}</p><p className="text-sm text-slate-500">{restaurant.archived_at ? 'Archivado' : restaurant.entitled === false ? 'Fuera del acceso vigente' : 'Activo'}</p></div>
-        {['owner', 'manager'].includes(user?.businessRole) && user?.subscription?.has_access && <button className="text-sm text-indigo-700 underline" disabled={busy} onClick={() => {
+        <div><p className="font-medium">{restaurant.name}</p><p className="text-sm text-muted">{restaurant.archived_at ? 'Archivado' : restaurant.entitled === false ? 'Fuera del acceso vigente' : 'Activo'}</p></div>
+        {['owner', 'manager'].includes(user?.businessRole) && user?.subscription?.has_access && <button className="text-sm text-brand underline" disabled={busy} onClick={() => {
           if (restaurant.archived_at || window.confirm('¿Archivar este restaurante? Su carta dejará de estar publicada y conservarás su contenido.')) run(() => api.post('/api/business/restaurant/archive', { restaurantId: restaurant.id, archive: !restaurant.archived_at }), restaurant.archived_at ? 'Restaurante restaurado.' : 'Restaurante archivado.');
         }}>{restaurant.archived_at ? 'Restaurar' : 'Archivar'}</button>}
       </li>)}</ul>
     </section>
-    <section className="rounded-xl border bg-white p-5"><h3 className="text-lg font-semibold">Integrantes</h3>
+    <section className="rounded-xl border bg-surface p-5"><h3 className="text-lg font-semibold">Integrantes</h3>
       {!team ? <p className="mt-3">Cargando equipo…</p> : <ul className="mt-3 divide-y">{(team.members ?? []).map(member => <li key={member.user_id} className="flex flex-wrap items-center justify-between gap-3 py-4">
-        <div><p className="break-all font-medium">{member.email}</p><p className="text-sm text-slate-500">{roles[member.role]}</p></div>
+        <div><p className="break-all font-medium">{member.email}</p><p className="text-sm text-muted">{roles[member.role]}</p></div>
         {owner && member.user_id !== user.id && <div className="flex flex-wrap gap-2">
           <select aria-label={`Rol de ${member.email}`} value={member.role} disabled={busy} className="rounded border p-2 text-sm" onChange={event => run(() => api.post('/api/business/members', { userId: member.user_id, action: 'role', role: event.target.value }), 'Rol actualizado.')}>
             <option value="manager">Administrador</option><option value="editor">Editor</option></select>
@@ -73,19 +73,19 @@ export default function BusinessSettings() {
       {owner && <form className="mt-5 space-y-3 border-t pt-5" onSubmit={event => { event.preventDefault(); run(async () => {
         const { data } = await api.post('/api/business/invitations', { email, role }); setInviteUrl(data.url); setEmail(''); return data;
       }, data => data.emailSent ? 'Invitación enviada por correo. También puedes compartir el enlace.' : 'Invitación creada. El correo no se envió; comparte el enlace con la persona invitada.'); }}>
-        <Input label="Correo de la persona invitada" name="inviteEmail" type="email" value={email} onChange={event => setEmail(event.target.value)} required forceLight />
+        <Input label="Correo de la persona invitada" name="inviteEmail" type="email" value={email} onChange={event => setEmail(event.target.value)} required />
         <label className="block text-sm">Permiso <select value={role} onChange={event => setRole(event.target.value)} className="ml-2 rounded border p-2"><option value="editor">Editor de cartas</option><option value="manager">Administrador del restaurante</option></select></label>
         <Button type="submit" disabled={busy}>Crear invitación</Button>
-        {inviteUrl && <p className="break-all text-sm">Enlace de invitación: <a className="text-indigo-700 underline" href={inviteUrl}>{inviteUrl}</a></p>}
+        {inviteUrl && <p className="break-all text-sm">Enlace de invitación: <a className="text-brand underline" href={inviteUrl}>{inviteUrl}</a></p>}
       </form>}
-      {owner && (team?.invitations ?? []).map(invitation => <div key={invitation.id} className="mt-4 flex flex-wrap justify-between gap-3 rounded bg-slate-50 p-3 text-sm">
+      {owner && (team?.invitations ?? []).map(invitation => <div key={invitation.id} className="mt-4 flex flex-wrap justify-between gap-3 rounded bg-canvas p-3 text-sm">
         <span>{invitation.email} · {roles[invitation.role]} · vence {new Date(invitation.expires_at).toLocaleDateString('es-CL')}</span>
         <button disabled={busy} className="text-red-700 underline" onClick={() => run(() => api.post('/api/business/invitations/revoke', { id: invitation.id }), 'Invitación anulada.')}>Anular invitación</button></div>)}
     </section>
-    <section className="rounded-xl border bg-white p-5"><h3 className="text-lg font-semibold">Avisos de MenuPro</h3>
-      {!notices.length && <p className="mt-3 text-slate-500">No tienes avisos pendientes.</p>}
-      <ul className="divide-y">{notices.map(notice => <li key={notice.id} className="py-4"><p className="font-semibold">{notice.subject}</p><p className="mt-1 text-sm text-slate-600">{notice.message}</p>
-        {!notice.read_at && <button className="mt-2 text-sm text-indigo-700 underline" disabled={busy} onClick={() => run(() => api.post('/api/business/notifications/read', { id: notice.id }), 'Aviso leído.')}>Marcar como leído</button>}</li>)}</ul>
+    <section className="rounded-xl border bg-surface p-5"><h3 className="text-lg font-semibold">Avisos de MenuPro</h3>
+      {!notices.length && <p className="mt-3 text-muted">No tienes avisos pendientes.</p>}
+      <ul className="divide-y">{notices.map(notice => <li key={notice.id} className="py-4"><p className="font-semibold">{notice.subject}</p><p className="mt-1 text-sm text-muted">{notice.message}</p>
+        {!notice.read_at && <button className="mt-2 text-sm text-brand underline" disabled={busy} onClick={() => run(() => api.post('/api/business/notifications/read', { id: notice.id }), 'Aviso leído.')}>Marcar como leído</button>}</li>)}</ul>
     </section>
   </div></DashboardLayout>;
 }

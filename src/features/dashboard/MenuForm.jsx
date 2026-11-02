@@ -67,10 +67,10 @@ function MenuForm() {
     <DashboardLayout>
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
-          <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+          <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-ink'}`}>
             {isEditing ? 'Editar Carta' : 'Nueva Carta'}
           </h2>
-          <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          <p className={`mt-1 ${isDark ? 'text-muted' : 'text-muted'}`}>
             {isEditing ? 'Actualiza la información de tu carta' : 'Crea una nueva carta para tu menú'}
           </p>
         </div>
@@ -88,7 +88,7 @@ function MenuForm() {
             />
 
             <div>
-              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-muted' : 'text-ink'}`}>
                 Icono / Emoji
               </label>
               <div className="flex gap-2">
@@ -97,8 +97,8 @@ function MenuForm() {
                   name="icon"
                   value={formData.icon}
                   onChange={handleChange}
-                  className={`w-20 px-4 py-2 text-center text-2xl border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
+                  className={`w-20 px-4 py-2 text-center text-2xl border rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent ${
+                    isDark ? 'bg-elevated border-line text-white' : 'bg-surface border-line text-ink'
                   }`}
                   maxLength="2"
                 />
@@ -110,7 +110,7 @@ function MenuForm() {
                         type="button"
                         onClick={() => setFormData({ ...formData, icon: emoji })}
                         className={`text-2xl p-2 rounded transition-colors ${
-                          isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                          isDark ? 'hover:bg-elevated' : 'hover:bg-canvas'
                         }`}
                       >
                         {emoji}
@@ -119,11 +119,11 @@ function MenuForm() {
                   </div>
                 </div>
               </div>
-              <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Selecciona un emoji o escribe uno</p>
+              <p className={`text-sm mt-1 ${isDark ? 'text-muted' : 'text-muted'}`}>Selecciona un emoji o escribe uno</p>
             </div>
 
             <div>
-              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-muted' : 'text-ink'}`}>
                 Descripción (Opcional)
               </label>
               <textarea
@@ -132,18 +132,18 @@ function MenuForm() {
                 onChange={handleChange}
                 rows="3"
                 placeholder="Ej: 6:00 AM - 11:00 AM, Disponible todo el día"
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent ${
+                  isDark ? 'bg-elevated border-line text-white placeholder-muted' : 'bg-surface border-line text-ink placeholder-muted'
                 }`}
               />
-              <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              <p className={`text-sm mt-1 ${isDark ? 'text-muted' : 'text-muted'}`}>
                 Información adicional como horarios o disponibilidad
               </p>
             </div>
 
             {/* Call to Action Settings */}
-            <div className={`border-t pt-6 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-              <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+            <div className={`border-t pt-6 ${isDark ? 'border-line' : 'border-line'}`}>
+              <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-ink'}`}>
                 Llamado a la Acción (CTA)
               </h3>
               
@@ -154,23 +154,23 @@ function MenuForm() {
                     name="showCallToAction"
                     checked={formData.showCallToAction}
                     onChange={handleCheckboxChange}
-                    className="w-4 h-4 text-blue-600 rounded"
+                    className="w-4 h-4 text-brand rounded"
                   />
                   <span className={`text-sm font-medium ${
-                    isDark ? 'text-gray-200' : 'text-gray-700'
+                    isDark ? 'text-muted' : 'text-ink'
                   }`}>
                     Mostrar sección de contacto en el menú público
                   </span>
                 </label>
                 <p className={`text-sm mt-1 ml-6 ${
-                  isDark ? 'text-gray-400' : 'text-gray-500'
+                  isDark ? 'text-muted' : 'text-muted'
                 }`}>
                   Incluye botones de llamada y delivery al final del menú
                 </p>
               </div>
 
               {formData.showCallToAction && (
-                <div className="space-y-4 ml-6 pl-4 border-l-2 border-blue-500">
+                <div className="space-y-4 ml-6 pl-4 border-l-2 border-brand">
                   <Input
                     label="Título del CTA"
                     name="ctaTitle"

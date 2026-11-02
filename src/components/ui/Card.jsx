@@ -1,6 +1,5 @@
 'use client';
 import { forwardRef } from 'react';
-import { useTheme } from '../../contexts/ThemeContext';
 
 const Card = forwardRef(function Card({ 
   children, 
@@ -11,10 +10,8 @@ const Card = forwardRef(function Card({
   padding = 'md',
   className = ''
 }, ref) {
-  const { theme } = useTheme();
-  const isDark = theme.mode === 'dark';
   
-  const baseStyles = `rounded-lg shadow ${isDark ? 'bg-gray-800 text-gray-100' : 'bg-white'}`;
+  const baseStyles = 'rounded-xl border border-line bg-surface text-ink shadow-sm';
   const hoverStyles = hoverable ? 'hover:shadow-lg transition-shadow cursor-pointer' : '';
   
   const paddings = {
@@ -27,9 +24,9 @@ const Card = forwardRef(function Card({
   return (
     <div ref={ref} className={`${baseStyles} ${hoverStyles} ${className}`}>
       {(title || subtitle) && (
-        <div className={`${paddings[padding]} border-b ${isDark ? 'border-gray-700' : ''}`}>
-          {title && <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>{title}</h3>}
-          {subtitle && <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{subtitle}</p>}
+        <div className={`${paddings[padding]} border-b border-line`}>
+          {title && <h3 className="text-xl font-semibold text-ink">{title}</h3>}
+          {subtitle && <p className="text-sm mt-1 text-muted">{subtitle}</p>}
         </div>
       )}
       
@@ -38,7 +35,7 @@ const Card = forwardRef(function Card({
       </div>
       
       {footer && (
-        <div className={`${paddings[padding]} border-t rounded-b-lg ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+        <div className={`${paddings[padding]} border-t rounded-b-lg bg-canvas border-line`}>
           {footer}
         </div>
       )}

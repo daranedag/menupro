@@ -100,10 +100,10 @@ function DishForm() {
     <DashboardLayout>
       <div className="max-w-3xl mx-auto">
         <div className="mb-6">
-          <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+          <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-ink'}`}>
             {isEditing ? 'Editar Plato' : 'Nuevo Plato'}
           </h2>
-          <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          <p className={`mt-1 ${isDark ? 'text-muted' : 'text-muted'}`}>
             {menu.icon} {menu.name} → {section.icon} {section.name}
           </p>
         </div>
@@ -147,7 +147,7 @@ function DishForm() {
 
             <div>
               <label className={`block text-sm font-semibold tracking-tight mb-2 ${
-                isDark ? 'text-gray-100' : 'text-slate-800'
+                isDark ? 'text-muted' : 'text-ink'
               }`}>
                 Descripción Larga (Opcional)
               </label>
@@ -157,12 +157,12 @@ function DishForm() {
                 onChange={handleChange}
                 rows="3"
                 placeholder="Descripción detallada del plato, ingredientes, preparación"
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent ${
+                  isDark ? 'bg-elevated border-line text-white placeholder-muted' : 'bg-surface border-line text-ink placeholder-muted'
                 }`}
               />
               <p className={`text-sm mt-1 ${
-                isDark ? 'text-gray-300' : 'text-slate-600'
+                isDark ? 'text-muted' : 'text-muted'
               }`}>Se muestra solo en desktop</p>
             </div>
 
@@ -212,10 +212,10 @@ function DishForm() {
 
             {formData.image && (
               <div className={`border rounded-lg p-4 ${
-                isDark ? 'border-gray-600' : 'border-gray-300'
+                isDark ? 'border-line' : 'border-line'
               }`}>
                 <p className={`text-sm font-semibold tracking-tight mb-2 ${
-                  isDark ? 'text-gray-100' : 'text-slate-800'
+                  isDark ? 'text-muted' : 'text-ink'
                 }`}>Vista Previa:</p>
                 <img 
                   src={formData.image} 
@@ -228,7 +228,7 @@ function DishForm() {
 
             <div>
               <label className={`block text-sm font-semibold tracking-tight mb-3 ${
-                isDark ? 'text-gray-100' : 'text-slate-800'
+                isDark ? 'text-muted' : 'text-ink'
               }`}>
                 Características
               </label>
@@ -239,10 +239,10 @@ function DishForm() {
                     name="isVegetarian"
                     checked={formData.isVegetarian}
                     onChange={handleChange}
-                    className="w-4 h-4 text-blue-600 rounded"
+                    className="w-4 h-4 text-brand rounded"
                   />
                   <span className={`text-sm ${
-                    isDark ? 'text-gray-100' : 'text-slate-800'
+                    isDark ? 'text-muted' : 'text-ink'
                   }`}>🥬 Vegetariano</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -251,10 +251,10 @@ function DishForm() {
                     name="isSpicy"
                     checked={formData.isSpicy}
                     onChange={handleChange}
-                    className="w-4 h-4 text-blue-600 rounded"
+                    className="w-4 h-4 text-brand rounded"
                   />
                   <span className={`text-sm ${
-                    isDark ? 'text-gray-100' : 'text-slate-800'
+                    isDark ? 'text-muted' : 'text-ink'
                   }`}>🌶️ Picante</span>
                 </label>
               </div>
@@ -262,7 +262,7 @@ function DishForm() {
 
             <div>
               <label className={`block text-sm font-semibold tracking-tight mb-2 ${
-                isDark ? 'text-gray-100' : 'text-slate-800'
+                isDark ? 'text-muted' : 'text-ink'
               }`}>
                 Tags / Etiquetas
               </label>
@@ -286,15 +286,15 @@ function DishForm() {
                   value={newTag.label}
                   onChange={(e) => setNewTag({ ...newTag, label: e.target.value })}
                   placeholder="Nombre del tag"
-                  className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent ${
+                    isDark ? 'bg-elevated border-line text-white placeholder-muted' : 'bg-surface border-line text-ink placeholder-muted'
                   }`}
                 />
                 <select
                   value={newTag.variant}
                   onChange={(e) => setNewTag({ ...newTag, variant: e.target.value })}
-                  className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
+                  className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent ${
+                    isDark ? 'bg-elevated border-line text-white' : 'bg-surface border-line text-ink'
                   }`}
                 >
                   <option value="default">Default</option>
@@ -311,7 +311,7 @@ function DishForm() {
             </div>
 
             <div className={`flex gap-3 pt-4 border-t ${
-              isDark ? 'border-gray-700' : 'border-gray-200'
+              isDark ? 'border-line' : 'border-line'
             }`}>
               <Button type="submit" variant="primary" size="lg" disabled={saving}>
                 {isEditing ? 'Guardar Cambios' : 'Crear Plato'}

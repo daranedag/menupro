@@ -51,26 +51,26 @@ function SortableSection({ section, menuId, onDeleteSection, onToggleSection, on
       ref={setNodeRef}
       style={style}
       padding="none"
-      className={`${isDragging ? 'ring-2 ring-blue-400 opacity-90' : ''}`}
+      className={`${isDragging ? 'ring-2 ring-brand opacity-90' : ''}`}
     >
       {/* Section Header */}
-      <div className={`p-6 border-b ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50'}`}>
+      <div className={`p-6 border-b ${isDark ? 'bg-elevated border-line' : 'bg-canvas'}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1">
             <button
               {...attributes}
               {...listeners}
               className={`cursor-grab active:cursor-grabbing ${
-                isDark ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-600'
+                isDark ? 'text-muted hover:text-muted' : 'text-muted hover:text-muted'
               }`}
             >
               <GripVertical size={20} />
             </button>
             {section.icon && <span className="text-2xl">{section.icon}</span>}
             <div>
-              <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>{section.name}</h3>
+              <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-ink'}`}>{section.name}</h3>
               {section.description && (
-                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{section.description}</p>
+                <p className={`text-sm ${isDark ? 'text-muted' : 'text-muted'}`}>{section.description}</p>
               )}
             </div>
             <Badge variant={section.isActive ? 'success' : 'default'} size="sm">
@@ -114,7 +114,7 @@ function SortableSection({ section, menuId, onDeleteSection, onToggleSection, on
             onDeleteDish={onDeleteDish}
           />
         ) : (
-          <div className={`text-center py-8 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+          <div className={`text-center py-8 ${isDark ? 'text-muted' : 'text-muted'}`}>
             <p className="mb-3">No hay platos en esta sección</p>
             <Link href={`/app/dashboard/menus/${menuId}/sections/${section.id}/dishes/new`}>
               <Button variant="outline" size="sm">Agregar Primer Plato</Button>
@@ -196,14 +196,14 @@ function SortableDish({ dish, menuId, sectionId, onDelete }) {
       ref={setNodeRef}
       style={style}
       className={`flex items-center gap-4 p-4 border rounded-lg hover:shadow-md transition-shadow ${
-        isDark ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'
+        isDark ? 'bg-elevated border-line' : 'bg-surface border-line'
       }`}
     >
       <button
         {...attributes}
         {...listeners}
         className={`cursor-grab active:cursor-grabbing ${
-          isDark ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-600'
+          isDark ? 'text-muted hover:text-muted' : 'text-muted hover:text-muted'
         }`}
       >
         <GripVertical size={20} />
@@ -217,7 +217,7 @@ function SortableDish({ dish, menuId, sectionId, onDelete }) {
       )}
       <div className="flex-grow">
         <div className="flex items-center gap-2 mb-1">
-          <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>{dish.name}</h4>
+          <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-ink'}`}>{dish.name}</h4>
           {dish.discount > 0 && (
             <Badge variant="discount" size="sm">-{dish.discount}%</Badge>
           )}
@@ -225,12 +225,12 @@ function SortableDish({ dish, menuId, sectionId, onDelete }) {
             {dish.isActive ? 'Activo' : 'Inactivo'}
           </Badge>
         </div>
-        <p className={`text-sm line-clamp-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{dish.description}</p>
+        <p className={`text-sm line-clamp-1 ${isDark ? 'text-muted' : 'text-muted'}`}>{dish.description}</p>
       </div>
       <div className="text-right">
         {hasDiscount ? (
           <div>
-            <p className={`text-sm line-through mb-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+            <p className={`text-sm line-through mb-0.5 ${isDark ? 'text-muted' : 'text-muted'}`}>
               ${dish.price.toFixed(2)}
             </p>
             <p className="text-lg font-bold text-red-600">
@@ -292,7 +292,7 @@ function MenuEditor() {
         <Card>
           <div className="flex flex-col items-center justify-center py-16 gap-3">
             <Spinner size="lg" label="Cargando carta..." />
-            <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+            <p className={`text-sm ${isDark ? 'text-muted' : 'text-muted'}`}>
               Estamos preparando tu menú
             </p>
           </div>
@@ -307,7 +307,7 @@ function MenuEditor() {
         <Card>
           <div className="text-center py-12">
             <span className="text-6xl mb-4 block">❌</span>
-            <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+            <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-ink'}`}>
               Carta no encontrada
             </h3>
             <Link href="/app/dashboard/menus">
@@ -367,15 +367,15 @@ function MenuEditor() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <Link href="/app/dashboard/menus" className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block">
+            <Link href="/app/dashboard/menus" className="text-brand hover:text-brand text-sm mb-2 inline-block">
               ← Volver a Cartas
             </Link>
             <div className="flex items-center gap-3">
               <span className="text-4xl">{menu.icon}</span>
               <div>
-                <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{menu.name}</h2>
+                <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-ink'}`}>{menu.name}</h2>
                 {menu.description && (
-                  <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>{menu.description}</p>
+                  <p className={isDark ? 'text-muted' : 'text-muted'}>{menu.description}</p>
                 )}
               </div>
             </div>
@@ -429,12 +429,12 @@ function MenuEditor() {
               </SortableContext>
               <DragOverlay>
                 {activeSectionId ? (
-                  <Card padding="none" className="ring-2 ring-blue-400">
+                  <Card padding="none" className="ring-2 ring-brand">
                     <div className="p-4 flex items-center gap-3">
                       <span className="text-2xl">{menu.sections.find(s => s.id === activeSectionId)?.icon}</span>
                       <div>
                         <div className="text-lg font-semibold">{menu.sections.find(s => s.id === activeSectionId)?.name}</div>
-                        <div className="text-sm text-gray-500">Moviendo sección</div>
+                        <div className="text-sm text-muted">Moviendo sección</div>
                       </div>
                     </div>
                   </Card>
@@ -445,10 +445,10 @@ function MenuEditor() {
             <Card>
               <div className="text-center py-12">
                 <span className="text-6xl mb-4 block">📁</span>
-                <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-ink'}`}>
                   No hay secciones
                 </h3>
-                <p className={`mb-6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                <p className={`mb-6 ${isDark ? 'text-muted' : 'text-muted'}`}>
                   Crea tu primera sección para organizar tu menú
                 </p>
                 <Link href={`/app/dashboard/menus/${menuId}/sections/new`}>

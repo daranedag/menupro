@@ -4,53 +4,15 @@ import { useTheme, colorPresets, fontPresets } from '../../contexts/ThemeContext
 import { Card, Button, Badge } from '../../components/ui';
 
 function Settings() {
-  const { theme, updateColors, updateFont, toggleMode, resetTheme } = useTheme();
-  const isDark = theme.mode === 'dark';
+  const { menuTheme: theme, updateColors, updateFont, resetTheme } = useTheme();
 
   return (
     <DashboardLayout>
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
-          <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Configuración</h2>
-          <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Personaliza la apariencia de tu menú</p>
+          <h2 className="text-3xl font-bold text-ink">Configuración</h2>
+          <p className="mt-1 text-muted">Personaliza la apariencia de tu menú. Los colores y la tipografía se aplican a tu carta pública.</p>
         </div>
-
-        {/* Modo Claro/Oscuro */}
-        <Card title="Tema" subtitle="Modo claro u oscuro" className="mb-6">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-            <button
-              onClick={() => toggleMode()}
-              className={`flex-1 flex items-center gap-3 px-6 py-4 rounded-lg border-2 transition-all ${
-                theme.mode === 'light'
-                  ? 'border-blue-500 bg-blue-50'
-                  : isDark 
-                    ? 'border-gray-600 hover:border-gray-500 bg-gray-800' 
-                    : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              <span className="text-3xl">☀️</span>
-              <div className="text-left">
-                <div className={`font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>Modo Claro</div>
-                <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Fondo blanco</div>
-              </div>
-            </button>
-
-            <button
-              onClick={() => toggleMode()}
-              className={`flex-1 flex items-center gap-3 px-6 py-4 rounded-lg border-2 transition-all ${
-                theme.mode === 'dark'
-                  ? 'border-blue-500 bg-blue-900'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              <span className="text-3xl">🌙</span>
-              <div className="text-left">
-                <div className={`font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>Modo Oscuro</div>
-                <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Fondo oscuro</div>
-              </div>
-            </button>
-          </div>
-        </Card>
 
         {/* Paleta de Colores */}
         <Card title="Colores" subtitle="Elige la paleta de colores para tu menú" className="mb-6">
@@ -58,30 +20,29 @@ function Settings() {
             {Object.entries(colorPresets).map(([key, colors]) => (
               <button
                 key={key}
+                aria-pressed={theme.colorPreset === key}
                 onClick={() => updateColors(key)}
                 className={`p-4 rounded-lg border-2 transition-all hover:shadow-md ${
                   theme.colorPreset === key
-                    ? 'border-blue-500 shadow-lg'
-                    : isDark 
-                      ? 'border-gray-600 hover:border-gray-500' 
-                      : 'border-gray-200'
+                    ? 'border-brand shadow-lg'
+                    : 'border-line hover:border-brand'
                 }`}
               >
-                <div className="flex gap-2 mb-3">
+                <div className="flex gap-2 mb-3" aria-hidden="true">
                   <div
-                    className="w-8 h-8 rounded"
+                    className="h-8 min-w-0 flex-1 rounded"
                     style={{ backgroundColor: colors.primary }}
                   />
                   <div
-                    className="w-8 h-8 rounded"
+                    className="h-8 min-w-0 flex-1 rounded"
                     style={{ backgroundColor: colors.secondary }}
                   />
                   <div
-                    className="w-8 h-8 rounded"
+                    className="h-8 min-w-0 flex-1 rounded"
                     style={{ backgroundColor: colors.accent }}
                   />
                 </div>
-                <div className={`font-semibold text-sm capitalize ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{key}</div>
+                <div className="font-semibold text-sm capitalize text-ink">{key}</div>
                 {theme.colorPreset === key && (
                   <Badge variant="primary" size="sm" className="mt-2">
                     Activo
@@ -91,8 +52,8 @@ function Settings() {
             ))}
           </div>
 
-          <div className={`mt-6 p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
-            <h4 className={`font-semibold mb-3 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>Vista Previa</h4>
+          <div className="mt-6 p-4 rounded-lg bg-canvas">
+            <h4 className="font-semibold mb-3 text-ink">Vista Previa</h4>
             <div className="flex flex-wrap gap-3">
               <button
                 className="px-4 py-2 rounded-lg text-white font-medium"
@@ -118,32 +79,29 @@ function Settings() {
 
         {/* Tipografía */}
         <Card title="Tipografía" subtitle="Elige la fuente para tu menú" className="mb-6">
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
             {Object.entries(fontPresets).map(([key, font]) => (
               <button
                 key={key}
+                aria-pressed={theme.fontPreset === key}
                 onClick={() => updateFont(key)}
-                className={`w-full p-4 rounded-lg border-2 transition-all text-left hover:shadow-md ${
+                className={`w-full min-w-0 break-words p-4 rounded-lg border-2 transition-all text-left hover:shadow-md ${
                   theme.fontPreset === key
-                    ? isDark 
-                      ? 'border-blue-500 bg-blue-900' 
-                      : 'border-blue-500 bg-blue-50'
-                    : isDark 
-                      ? 'border-gray-600 hover:border-gray-500' 
-                      : 'border-gray-200'
+                    ? 'border-brand bg-brand-soft'
+                    : 'border-line hover:border-brand'
                 }`}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex h-full flex-col items-start justify-between gap-3">
                   <div>
-                    <div className={`font-semibold mb-1 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{font.name}</div>
+                    <div className="font-semibold mb-1 text-ink">{font.name}</div>
                     <div
-                      className={`text-lg ${isDark ? 'text-gray-300' : 'text-gray-800'}`}
+                      className="text-lg text-ink"
                       style={{ fontFamily: font.fontFamily }}
                     >
-                      The quick brown fox jumps over the lazy dog
+                      El sabor de nuestra cocina
                     </div>
                     <div
-                      className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}
+                      className="text-sm text-muted"
                       style={{ fontFamily: font.fontFamily }}
                     >
                       1234567890 - ¡Hola! ¿Cómo estás?

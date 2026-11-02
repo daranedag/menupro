@@ -1,12 +1,14 @@
 'use client';
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme, colorPresets, fontPresets } from '@/contexts/ThemeContext';
 
 export default function ThemeSync() {
   const { user } = useAuth();
   const { setTheme } = useTheme();
   const restaurant = user?.restaurants?.find(restaurant => restaurant.id === user.activeRestaurantId);
-  useEffect(() => { if (restaurant?.theme) setTheme(restaurant.theme); }, [restaurant?.id, restaurant?.theme, setTheme]);
+  useEffect(() => {
+    setTheme(restaurant?.theme || { mode: 'light', colors: colorPresets.default, colorPreset: 'default', font: fontPresets.default, fontPreset: 'default' });
+  }, [restaurant?.id, restaurant?.theme, setTheme]);
   return null;
 }

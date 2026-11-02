@@ -7,6 +7,7 @@ import { useNavigate } from '@/lib/navigation';
 
 import { useAuth } from '../contexts/AuthContext';
 import { Input, Button } from '../components/ui';
+import ThemeToggle from '@/components/marketing/ThemeToggle';
 
 const googleErrors = {
   google_cancelled: 'Cancelaste el acceso con Google. Puedes intentarlo nuevamente o entrar con tu correo.',
@@ -89,20 +90,19 @@ function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 relative overflow-hidden flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-slate-950 to-emerald-950 opacity-95" />
-      <div className="absolute -left-32 -top-24 h-72 w-72 rounded-full bg-indigo-600/25 blur-3xl" />
-      <div className="absolute -right-20 bottom-10 h-64 w-64 rounded-full bg-emerald-500/25 blur-3xl" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(99,102,241,0.15),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(16,185,129,0.15),transparent_30%)]" />
-
+    <div className="auth-background min-h-screen relative flex flex-col items-center justify-center gap-6 p-4 sm:p-6">
+      <div className="flex w-full max-w-6xl items-center justify-between gap-4">
+        <Link href="/" className="flex items-center gap-2 font-semibold"><img src="/favicon.png" alt="" width={32} height={32} />MenuPro</Link>
+        <ThemeToggle />
+      </div>
       <div className="relative w-full max-w-6xl grid lg:grid-cols-[1.15fr_1fr] gap-8 items-stretch">
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-10 shadow-2xl backdrop-blur-xl flex flex-col gap-10">
+        <div className="auth-story border border-white/10 rounded-2xl p-6 sm:p-10 shadow-xl flex flex-col gap-10">
           <div className="flex items-start gap-4">
             <div className="h-12 w-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
               <img src="/favicon.png" alt="Logo de MenuPro" className="h-8 w-8" />
             </div>
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.25em] text-indigo-200">MenuPro</p>
+              <p className="text-xs uppercase tracking-[0.25em] text-[#c8dfd3]">MenuPro</p>
               <h1 className="text-2xl font-semibold text-white leading-tight">Tu carta digital, siempre actualizada</h1>
               <p className="text-sm text-slate-200/80">Crea, edita y comparte el menú de tu restaurante en minutos. Sin reimprimir, sin depender de terceros.</p>
             </div>
@@ -130,22 +130,21 @@ function Auth() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100 relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-emerald-50" />
-          <div className="relative p-10">
+        <div className="bg-surface rounded-2xl shadow-xl overflow-hidden border border-line relative">
+          <div className="relative p-6 sm:p-10">
             <div className="text-left mb-6">
-              <div className="flex items-center gap-2 text-xs font-semibold text-indigo-600 uppercase tracking-[0.2em]">
-                <span className="inline-flex h-2 w-2 rounded-full bg-indigo-500" /> Acceso MenuPro
+              <div className="flex items-center gap-2 text-xs font-semibold text-brand uppercase tracking-[0.2em]">
+                <span className="inline-flex h-2 w-2 rounded-full bg-action" /> Acceso MenuPro
               </div>
-              <h2 className="text-3xl font-bold text-slate-900 mt-2">
+              <h2 className="text-3xl font-bold text-ink mt-2">
                 {isLogin ? 'Bienvenido de nuevo' : 'Crea tu acceso'}
               </h2>
-              <p className="text-slate-600 mt-2">
+              <p className="text-muted mt-2">
                 {isLogin ? 'Continúa con Google o ingresa con tu correo' : 'Crea tu cuenta con Google o con tu correo'}
               </p>
             </div>
 
-            <Link href="/" className="mb-4 inline-block text-sm text-indigo-700">← Volver a MenuPro</Link>
+            <Link href="/" className="mb-4 inline-block text-sm text-brand">← Volver a MenuPro</Link>
             {notice && <p role="status" className="mb-4 rounded-lg bg-emerald-50 p-3 text-emerald-800">{notice}</p>}
             {confirmation === 'code' && <form className="mb-6 space-y-3" onSubmit={async event => {
               event.preventDefault(); setError(''); setIsLoading(true);
@@ -155,7 +154,7 @@ function Auth() {
               } catch (error) { setError(error.message); }
               finally { setIsLoading(false); }
             }}>
-              <label htmlFor="verification-code" className="block text-sm text-slate-700">Código de verificación</label>
+              <label htmlFor="verification-code" className="block text-sm text-ink">Código de verificación</label>
               <input id="verification-code" value={otp} onChange={event => setOtp(event.target.value)} inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required className="w-full rounded-lg border p-3" />
               <Button type="submit" disabled={isBusy}>Verificar correo</Button>
             </form>}
@@ -165,7 +164,7 @@ function Auth() {
               </div>
             )}
 
-            <button type="button" onClick={handleGoogle} disabled={isBusy} aria-busy={isGoogleLoading} className="inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-60">
+            <button type="button" onClick={handleGoogle} disabled={isBusy} aria-busy={isGoogleLoading} className="inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 font-medium text-ink transition hover:bg-canvas disabled:opacity-60">
               <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                 <path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.33 2.98-7.36Z" />
                 <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.62-2.41l-3.24-2.51c-.9.6-2.04.96-3.38.96-2.6 0-4.8-1.76-5.59-4.12H3.07v2.59A10 10 0 0 0 12 22Z" />
@@ -174,7 +173,8 @@ function Auth() {
               </svg>
               {isGoogleLoading ? 'Conectando con Google…' : 'Continuar con Google'}
             </button>
-            <div className="my-6 flex items-center gap-3 text-xs text-slate-500"><span className="h-px flex-1 bg-slate-200" /><span>o continúa con tu correo</span><span className="h-px flex-1 bg-slate-200" /></div>
+            <p className="mt-3 text-center text-xs leading-relaxed text-muted">Utilizamos las apps de InsForge e InstaCloud para gestionar los inicios de sesión.</p>
+            <div className="my-6 flex items-center gap-3 text-xs text-muted"><span className="h-px flex-1 bg-canvas" /><span>o continúa con tu correo</span><span className="h-px flex-1 bg-canvas" /></div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
@@ -186,7 +186,6 @@ function Auth() {
                 onChange={handleChange}
                 required
                 icon="📧"
-                forceLight
               />
 
               <Input
@@ -199,7 +198,6 @@ function Auth() {
                 required
                 icon="🔒"
                 helperText={!isLogin ? "Mínimo 8 caracteres" : ""}
-                forceLight
               />
 
               <Button
@@ -221,14 +219,14 @@ function Auth() {
                   setIsLogin(!isLogin);
                   setError('');
                 }}
-                className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                className="text-brand hover:text-brand text-sm font-medium"
               >
                 {isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
               </button>
             </div>
 
             {isLogin && (
-              <p className="mt-4 text-center text-sm"><Link href="/app/recover" className="text-indigo-700 underline">Olvidé mi contraseña</Link></p>
+              <p className="mt-4 text-center text-sm"><Link href="/app/recover" className="text-brand underline">Olvidé mi contraseña</Link></p>
             )}
           </div>
         </div>

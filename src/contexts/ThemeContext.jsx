@@ -1,5 +1,6 @@
 'use client';
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
+import { setAppearance, useAppearance } from '@/lib/appearance';
 
 const ThemeContext = createContext(null);
 
@@ -69,79 +70,51 @@ export const fontPresets = {
   },
 };
 
-export const ThemeProvider = ({ children, initialTheme }) => {
-  // The initial appearance comes from the restaurant, including during SSR.
-  const [theme, setTheme] = useState(() => {
-    if (initialTheme) return initialTheme;
-    return {
-      mode: 'light',
-      colors: colorPresets.default,
-      colorPreset: 'default',
-      font: fontPresets.default,
-      fontPreset: 'default',
-    };
-  });
+const defaultMenuTheme = {
+  mode: 'light',
+  colors: colorPresets.default,
+  colorPreset: 'default',
+  font: fontPresets.default,
+  fontPreset: 'default',
+};
 
-  // Apply the selected appearance. Settings saves it through the BFF.
-  useEffect(() => {
-    
-    // Aplicar variables CSS globales
-    const root = document.documentElement;
-    root.style.setProperty('--color-primary', theme.colors.primary);
-    root.style.setProperty('--color-secondary', theme.colors.secondary);
-    root.style.setProperty('--color-accent', theme.colors.accent);
-    root.style.setProperty('--font-family', theme.font.fontFamily);
-    
-    // Aplicar modo oscuro/claro
-    if (theme.mode === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-  }, [theme]);
+export const ThemeProvider = ({ children, initialTheme }) => {
+  const mode = useAppearance();
+  const [menuTheme, setTheme] = useState(() => initialTheme || defaultMenuTheme);
+  // Restaurant appearance stays local. Only the shared browser preference controls the app.
+  const theme = initialTheme ? menuTheme : { ...menuTheme, mode };
 
   const updateColors = (colorPresetName) => {
-    setTheme({
-      ...theme,
+    setTheme(previous => ({
+      ...previous,
       colors: colorPresets[colorPresetName],
       colorPreset: colorPresetName,
-    });
+    }));
   };
 
   const updateFont = (fontPresetName) => {
-    setTheme({
-      ...theme,
+    setTheme(previous => ({
+      ...previous,
       font: fontPresets[fontPresetName],
       fontPreset: fontPresetName,
-    });
+    }));
   };
 
   const toggleMode = () => {
-    setTheme({
-      ...theme,
-      mode: theme.mode === 'light' ? 'dark' : 'light',
-    });
+    setAppearance(mode === 'light' ? 'dark' : 'light');
   };
 
   const setMode = (mode) => {
-    setTheme({
-      ...theme,
-      mode,
-    });
+    setAppearance(mode);
   };
 
   const resetTheme = () => {
-    setTheme({
-      mode: 'light',
-      colors: colorPresets.default,
-      colorPreset: 'default',
-      font: fontPresets.default,
-      fontPreset: 'default',
-    });
+    setTheme(defaultMenuTheme);
   };
 
   const value = {
     theme,
+    menuTheme,
     setTheme,
     updateColors,
     updateFont,

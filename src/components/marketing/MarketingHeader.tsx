@@ -27,7 +27,7 @@ export default function MarketingHeader() {
     }
   }}>
     <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
-      <Link href="/" className="text-lg font-semibold transition hover:text-[var(--color-accent)]">MenuPro</Link>
+      <Link href="/" className="flex shrink-0 items-center gap-2 text-lg font-semibold transition hover:text-[var(--color-accent)]"><img src="/favicon.png" alt="" width={32} height={32} className="size-8" />MenuPro</Link>
       <div className="flex items-center gap-4 md:gap-6">
         <nav aria-label="Navegación principal" className="hidden items-center gap-6 md:flex">
           {links.map(({ href, label }) => <Link key={href} href={href} aria-current={pathname === href ? 'page' : undefined} className={`text-sm font-medium transition hover:text-[var(--color-accent)] ${pathname === href ? 'border-b-2 border-[var(--color-accent)] text-[var(--color-accent)]' : ''}`}>{label}</Link>)}
