@@ -8,11 +8,12 @@ const Card = forwardRef(function Card({
   footer,
   hoverable = false,
   padding = 'md',
-  className = ''
+  className = '',
+  ...props
 }, ref) {
   
-  const baseStyles = 'rounded-xl border border-line bg-surface text-ink shadow-sm';
-  const hoverStyles = hoverable ? 'hover:shadow-lg transition-shadow cursor-pointer' : '';
+  const baseStyles = 'ui-card border border-line bg-surface text-ink';
+  const hoverStyles = hoverable ? 'transition-colors hover:border-brand/40' : '';
   
   const paddings = {
     none: '',
@@ -22,10 +23,10 @@ const Card = forwardRef(function Card({
   };
   
   return (
-    <div ref={ref} className={`${baseStyles} ${hoverStyles} ${className}`}>
+    <div {...props} ref={ref} className={`${baseStyles} ${hoverStyles} ${className}`}>
       {(title || subtitle) && (
-        <div className={`${paddings[padding]} border-b border-line`}>
-          {title && <h3 className="text-xl font-semibold text-ink">{title}</h3>}
+        <div className={`ui-card-header ${paddings[padding]} border-b border-line`}>
+          {title && <h3 className="ui-card-title text-ink">{title}</h3>}
           {subtitle && <p className="text-sm mt-1 text-muted">{subtitle}</p>}
         </div>
       )}

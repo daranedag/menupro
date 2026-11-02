@@ -1,128 +1,39 @@
 import Link from 'next/link';
-import { ArrowDown, ArrowRight } from 'lucide-react';
+import { Check, PencilLine, QrCode, Palette, Printer, Smartphone, MessageCircle, BookOpen } from 'lucide-react';
 import MarketingLayout from '@/components/MarketingLayout';
+import MenuDemo from '@/components/marketing/MenuDemo';
 
-const problems = [
-  ['💸', 'Cambiar precios es caro', 'Cada ajuste implica reimprimir cartas o rehacer archivos.'],
-  ['📄', 'Cartas desordenadas', 'Diseños poco claros dificultan la lectura y confunden al cliente.'],
-  ['📱', 'QR poco optimizados', 'Menús que no se adaptan bien al celular o requieren zoom.'],
-  ['⏱️', 'Dependencia de terceros', 'Cambios simples requieren tiempo, dinero y coordinación externa.'],
-  ['⌛', 'Tiempo de carga', 'Menús lentos que frustran a los clientes y afectan la experiencia.'],
-];
 const features = [
-  ['📱', 'Optimizado para celulares', 'Tu menú se ve perfecto en cualquier teléfono, sin zoom ni desorden.'],
-  ['✏️', 'Editor simple', 'Agrega platos, edita precios y descripciones sin conocimientos técnicos.'],
-  ['🔗', 'QR automático', 'Un código QR único para tu restaurante, listo para imprimir o compartir.'],
-  ['🖨️', 'PDF imprimible', 'Genera una versión lista para imprimir cuando lo necesites.'],
-  ['🔎', 'Sin instalar aplicaciones', 'Tus clientes abren la carta directamente desde su navegador.'],
-  ['📸', 'Fotos y descripciones', 'Presenta tus platos de forma clara y atractiva, sin saturar.'],
+  { icon: PencilLine, title: 'Un cambio y listo.', text: 'Edita precios, agrega el plato del día o pausa lo que se agotó. Tú tienes el control.' },
+  { icon: QrCode, title: 'El mismo QR. Siempre.', text: 'Imprímelo una vez. Tus clientes encuentran la carta actualizada cada vez que lo escanean.' },
+  { icon: Palette, title: 'Con el sello de tu local.', text: 'Elige colores y tipografía, suma fotos y organiza tus platos a tu manera.' },
+  { icon: Smartphone, title: 'Hecha para abrir el apetito.', text: 'Una carta que se lee cómodamente en el celular. Sin descargas y sin hacer zoom.' },
+  { icon: Printer, title: 'También sobre la mesa.', text: 'Descarga tu carta en PDF cuando necesites una versión para imprimir.' },
+  { icon: BookOpen, title: 'Cada carta en su lugar.', text: 'Separa almuerzo, bebidas y especialidades. Administra todo desde un solo panel.' },
 ];
-const steps = [
-  ['Cargas tu menú', 'Agrega categorías, platos, precios y descripciones desde un editor simple.'],
-  ['Generas tu QR', 'MenuPro crea automáticamente un QR único para tu restaurante.'],
-  ['Actualizas cuando quieras', 'Cambia precios o platos en segundos, sin reimprimir ni rehacer nada.'],
-];
-const benefits = [
-  ['⏱️', 'Ahorra tiempo', 'Cambia precios, platos o descripciones en minutos, sin depender de nadie.'],
-  ['💸', 'Reduce costos', 'Elimina reimpresiones constantes y errores en cartas físicas.'],
-  ['✨', 'Mejora tu imagen', 'Una carta moderna, clara y alineada con la identidad de tu local.'],
-  ['✅', 'Menos errores', 'Evita confusiones entre cocina, garzones y clientes.'],
-  ['🫂', 'Clientes felices', 'Ofrece una experiencia ágil y profesional que tus clientes valoran.'],
-];
-
-function Cards({ items, columns }: { items: string[][]; columns: 'three' | 'five' }) {
-  return <div className={`grid gap-6 sm:grid-cols-2 ${columns === 'five' ? 'lg:grid-cols-5' : 'lg:grid-cols-3'}`}>
-    {items.map(([icon, title, text]) => <article key={title} className="marketing-card rounded-2xl border border-default bg-[var(--color-bg)] p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <span aria-hidden="true" className="mb-4 inline-block text-3xl">{icon}</span>
-      <h3 className="mb-2 text-lg font-semibold">{title}</h3>
-      <p className="text-sm leading-relaxed text-muted">{text}</p>
-    </article>)}
-  </div>;
-}
 
 export default function Home() {
   return <MarketingLayout>
-    <section className="mx-auto max-w-7xl px-6 py-12 md:py-16">
-      <div className="flex flex-col gap-12 md:grid md:grid-cols-2 md:items-center md:gap-16">
-        <div>
-          <h1 className="marketing-hero-title mb-5 text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">Tu carta digital, siempre actualizada</h1>
-          <p className="mb-8 max-w-xl text-base text-muted sm:text-lg">Crea, edita y comparte el menú de tu restaurante en minutos. Sin reimprimir, sin depender de terceros.</p>
-          <div className="relative z-10 flex flex-col items-start gap-3">
-            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-              <Link href="/app/register" className="btn-primary inline-flex min-h-12 items-center justify-center gap-3 rounded-lg px-6 py-3 text-center font-semibold shadow-sm transition">Probar gratis 15 días <ArrowRight size={18} aria-hidden="true" /></Link>
-              <Link href="/precios" className="inline-flex min-h-12 items-center justify-center rounded-lg border border-default px-6 py-3 text-center font-medium transition hover:bg-[var(--color-bg-soft)]">Ver planes y precios</Link>
-            </div>
-            <a href="#features" className="inline-flex min-h-11 items-center gap-2 text-sm text-muted underline-offset-4 transition hover:text-[var(--color-text)] hover:underline">Ver cómo funciona <ArrowDown size={15} aria-hidden="true" /></a>
-          </div>
-        </div>
-        <div className="relative isolate flex justify-center">
-          <div aria-hidden="true" className="marketing-hero-glow absolute inset-0 -z-10 rounded-3xl bg-[var(--color-accent-soft)] opacity-60 blur-3xl" />
-          <img src="/images/hero/menu-mockup.png" alt="Carta digital MenuPro en celular" width="1024" height="1024" className="h-auto w-[260px] rounded-3xl shadow-xl sm:w-[300px] md:w-[340px]" fetchPriority="high" />
-        </div>
+    <section className="home-hero content-width">
+      <div className="hero-copy">
+        <span className="trial-note"><span aria-hidden="true" />15 días para probar con tu propia carta</span>
+        <h1>Tu cocina cambia.<br />Tu carta también.</h1>
+        <p>El plato del día, los nuevos precios, tu próxima creación. Pon tu carta al día y compártela con un solo QR.</p>
+        <div className="hero-actions"><Link href="/app/register" className="button-primary">Crear mi carta gratis</Link><a href="#demo" className="button-secondary">Explorar un ejemplo</a></div>
+        <div className="hero-assurances"><span><Check size={15} /> Sin tarjeta</span><span><Check size={15} /> Sin instalar apps</span><span><Check size={15} /> Hecho en Chile</span></div>
       </div>
+      <MenuDemo />
     </section>
-
-    <section className="bg-[var(--color-bg-soft)] px-6 py-10 md:py-12">
-      <div className="mx-auto max-w-7xl text-center">
-        <p className="mb-6 text-sm uppercase tracking-wide text-muted">Pensado para restaurantes</p>
-        <h2 className="mb-10 text-2xl font-semibold tracking-tight md:text-3xl">Diseñado para locales que quieren verse profesionales</h2>
-        <div className="grid grid-cols-2 items-center gap-6 md:grid-cols-4">{['Bares', 'Cafeterías', 'Foodtrucks', 'Restaurantes'].map(label => <div key={label} className="flex h-14 items-center justify-center rounded-xl border border-default bg-[var(--color-bg)]"><span className="text-sm font-medium text-muted">{label}</span></div>)}</div>
-        <p className="mx-auto mt-10 max-w-xl text-sm text-muted">MenuPro está creado para negocios gastronómicos que necesitan una carta clara, editable y alineada con su identidad.</p>
-      </div>
+    <div className="audience-strip"><div className="content-width"><p>Tu lugar tiene su propia receta.</p><div><span>Restaurantes</span><span>Cafeterías</span><span>Bares</span><span>Foodtrucks</span></div></div></div>
+    <section id="features" className="home-features content-width">
+      <div className="section-intro"><h2>Menos tiempo en la carta.<br />Más tiempo en tu cocina.</h2><p>Todo lo que necesitas para mantener tu menú al día, sin depender de nadie.</p></div>
+      <div className="feature-grid">{features.map(({ icon: Icon, title, text }) => <article key={title}><span className="feature-icon"><Icon size={23} strokeWidth={1.7} aria-hidden="true" /></span><h3>{title}</h3><p>{text}</p></article>)}</div>
     </section>
-
-    <section className="mx-auto max-w-7xl px-6 py-12 md:py-16">
-      <div className="mb-14 text-center">
-        <h2 className="mb-4 text-3xl font-semibold tracking-tight md:text-4xl">¿Te suena familiar?</h2>
-        <p className="mx-auto max-w-2xl text-muted">La mayoría de los restaurantes enfrenta estos problemas todos los días.</p>
-      </div>
-      <Cards items={problems} columns="five" />
-    </section>
-
-    <section id="features" className="mx-auto max-w-7xl scroll-mt-6 px-6 py-12 md:py-16">
-      <div className="mb-14 text-center">
-        <h2 className="mb-4 text-3xl font-semibold tracking-tight md:text-4xl">Todo lo que tu carta necesita</h2>
-        <p className="mx-auto max-w-2xl text-muted">MenuPro está pensado para el día a día real de un restaurante. Simple, ordenado y fácil de mantener.</p>
-      </div>
-      <Cards items={features} columns="three" />
-    </section>
-
-    <section id="demo" className="bg-[var(--color-bg-soft)] px-6 py-12 md:py-16">
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-12 text-center">
-          <h2 className="mb-4 text-3xl font-semibold tracking-tight md:text-4xl">Tu demo, lista para comenzar</h2>
-          <p className="text-muted">Regístrate, ingresa los datos de tu restaurante y activa 15 días gratis. Sin tarjeta.</p>
-        </div>
-        <div className="space-y-5 rounded-2xl border border-default bg-[var(--color-bg)] p-6 text-center md:p-8">
-          <p>Prueba con tu carta y un QR real. Al contratar conservas todo lo creado y puedes acceder al descuento de bienvenida.</p>
-          <Link href="/app/register" className="btn-primary inline-flex rounded-lg px-6 py-3 font-semibold">Crear mi cuenta y probar</Link>
-          <p className="text-sm text-muted">Una demo por negocio. <Link href="/contacto" className="underline">También podemos acompañarte.</Link></p>
-        </div>
-      </div>
-    </section>
-
-    <section id="como-funciona" className="px-6 py-12 md:py-16">
-      <div className="mb-14 text-center">
-        <h2 className="mb-4 text-3xl font-semibold tracking-tight md:text-4xl">Así de simple</h2>
-        <p className="mx-auto max-w-2xl text-muted">MenuPro está diseñado para que puedas empezar sin complicaciones.</p>
-      </div>
-      <ol className="mx-auto grid max-w-5xl gap-8 sm:grid-cols-2 md:grid-cols-3">{steps.map(([title, text], index) => <li key={title} className="rounded-[1.25rem] border border-default bg-[var(--color-bg)] px-6 py-8 text-center">
-        <span className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-[var(--color-accent-soft)] font-semibold text-[var(--color-accent)]">{index + 1}</span>
-        <h3 className="mb-2 font-semibold">{title}</h3><p className="text-sm leading-relaxed text-muted">{text}</p>
-      </li>)}</ol>
-    </section>
-
-    <section className="mx-auto max-w-7xl px-6 py-12 md:py-16">
-      <h2 className="mb-14 text-center text-3xl font-semibold tracking-tight md:text-4xl">Beneficios que impactan tu operación diaria</h2>
-      <Cards items={benefits} columns="five" />
-    </section>
-
-    <section className="bg-[var(--marketing-button)] px-6 py-12 text-white md:py-16">
-      <div className="mx-auto max-w-3xl text-center">
-        <h2 className="mb-6 text-3xl font-semibold tracking-tight md:text-4xl">Lleva tu carta al siguiente nivel</h2>
-        <p className="mb-10 text-lg text-white/90">Te ayudamos a crear una carta digital clara, editable y lista para tus clientes.</p>
-        <a href="https://wa.me/56967603803" className="inline-block rounded-xl bg-white px-8 py-4 font-medium text-[var(--marketing-button)] transition hover:bg-white/90">Hablar por WhatsApp</a>
-      </div>
-    </section>
+    <section id="como-funciona" className="how-section"><div className="content-width how-layout"><div><h2>De tu cocina<br />a su celular.</h2><p>Empieza con lo que ya tienes. Tu carta puede crecer contigo.</p><Link href="/app/register" className="text-link">Comenzar mis 15 días gratis</Link></div><ol>{[
+      ['Dale un lugar a cada plato', 'Crea tu cuenta, agrega tu restaurante y organiza tu carta por secciones.'],
+      ['Hazla tuya', 'Agrega platos, precios y fotos. Elige la apariencia que mejor represente a tu local.'],
+      ['Pon el QR sobre la mesa', 'Publica tu carta y comparte tu QR. Cuando cambie el menú, actualízalo desde el panel.'],
+    ].map(([title, text], i) => <li key={title}><span>{i + 1}</span><div><h3>{title}</h3><p>{text}</p></div></li>)}</ol></div></section>
+    <section className="home-invitation content-width"><div><h2>La próxima carta<br />puede ser la tuya.</h2><p>Prueba MenuPro durante 15 días con tus platos y tu QR. Si continúas, conservas todo lo que creaste.</p><Link href="/app/register" className="button-primary">Crear mi carta gratis</Link><Link href="/precios" className="text-link">Consultar planes y precios</Link></div><div className="help-note"><MessageCircle size={30} strokeWidth={1.5} /><h3>¿Lo vemos juntos?</h3><p>Cuéntanos sobre tu local y te ayudamos a dar el primer paso.</p><a href="https://wa.me/56967603803" target="_blank" rel="noopener noreferrer" className="text-link">Conversar por WhatsApp</a></div></section>
   </MarketingLayout>;
 }

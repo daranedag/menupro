@@ -1,4 +1,5 @@
 'use client';
+import { useId } from 'react';
 
 function Input({ 
   label,
@@ -16,7 +17,10 @@ function Input({
   className = '',
   ...props
 }) {
-  const baseStyles = 'px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-colors bg-surface text-ink placeholder-muted disabled:bg-canvas disabled:cursor-not-allowed';
+  const generatedId = useId();
+  const fieldId = props.id || name || generatedId;
+  const descriptionId = `${fieldId}-description`;
+  const baseStyles = 'ui-input px-4 py-2 border focus:ring-2 focus:ring-brand transition-colors bg-surface text-ink disabled:bg-canvas disabled:cursor-not-allowed';
   const errorStyles = error 
     ? 'border-red-500 focus:ring-red-500' 
     : 'border-line';
@@ -25,7 +29,7 @@ function Input({
   return (
     <div className={`${fullWidth ? 'w-full' : ''} ${className}`}>
       {label && (
-        <label htmlFor={name} className="block text-sm font-semibold mb-2 tracking-tight text-ink">
+        <label htmlFor={fieldId} className="block text-sm font-medium mb-2 text-ink">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -40,7 +44,9 @@ function Input({
         
         <input
           {...props}
-          id={name}
+          id={fieldId}
+          aria-invalid={!!error || undefined}
+          aria-describedby={error || helperText ? descriptionId : props['aria-describedby']}
           type={type}
           name={name}
           value={value}
@@ -53,11 +59,11 @@ function Input({
       </div>
       
       {error && (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
+        <p id={descriptionId} role="alert" className="mt-1 text-sm text-red-600">{error}</p>
       )}
       
       {helperText && !error && (
-        <p className="mt-1 text-sm text-muted">{helperText}</p>
+        <p id={descriptionId} className="mt-1 text-sm text-muted">{helperText}</p>
       )}
     </div>
   );

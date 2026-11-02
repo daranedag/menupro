@@ -27,6 +27,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { formatPrice } from '@/lib/format-price';
 
 // Componente para Sección Sortable
 function SortableSection({ section, menuId, onDeleteSection, onToggleSection, onDeleteDish }) {
@@ -55,9 +56,10 @@ function SortableSection({ section, menuId, onDeleteSection, onToggleSection, on
     >
       {/* Section Header */}
       <div className={`p-6 border-b ${isDark ? 'bg-elevated border-line' : 'bg-canvas'}`}>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3 flex-1">
             <button
+              aria-label={`Mover sección ${section.name}`}
               {...attributes}
               {...listeners}
               className={`cursor-grab active:cursor-grabbing ${
@@ -195,11 +197,12 @@ function SortableDish({ dish, menuId, sectionId, onDelete }) {
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-4 p-4 border rounded-lg hover:shadow-md transition-shadow ${
+      className={`editor-dish flex items-center gap-4 p-4 border rounded-lg ${
         isDark ? 'bg-elevated border-line' : 'bg-surface border-line'
       }`}
     >
       <button
+        aria-label={`Mover plato ${dish.name}`}
         {...attributes}
         {...listeners}
         className={`cursor-grab active:cursor-grabbing ${
@@ -215,8 +218,8 @@ function SortableDish({ dish, menuId, sectionId, onDelete }) {
           className="w-16 h-16 object-cover rounded"
         />
       )}
-      <div className="flex-grow">
-        <div className="flex items-center gap-2 mb-1">
+      <div className="min-w-0 flex-grow">
+        <div className="flex flex-wrap items-center gap-2 mb-1">
           <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-ink'}`}>{dish.name}</h4>
           {dish.discount > 0 && (
             <Badge variant="discount" size="sm">-{dish.discount}%</Badge>
@@ -231,14 +234,14 @@ function SortableDish({ dish, menuId, sectionId, onDelete }) {
         {hasDiscount ? (
           <div>
             <p className={`text-sm line-through mb-0.5 ${isDark ? 'text-muted' : 'text-muted'}`}>
-              ${dish.price.toFixed(2)}
+              {formatPrice(dish.price)}
             </p>
             <p className="text-lg font-bold text-red-600">
-              ${finalPrice.toFixed(2)}
+              {formatPrice(finalPrice)}
             </p>
           </div>
         ) : (
-          <p className="text-lg font-bold text-emerald-600">${dish.price.toFixed(2)}</p>
+          <p className="text-lg font-semibold text-ink">{formatPrice(dish.price)}</p>
         )}
       </div>
       <div className="flex gap-2">

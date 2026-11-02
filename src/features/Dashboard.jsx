@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import DashboardLayout from '../layouts/DashboardLayout';
 import { useMenu } from '../contexts/MenuContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -74,14 +75,14 @@ function DashboardHome() {
   return (
     <DashboardLayout>
       <div>
-        <div className="mb-6">
+        <div className="dashboard-heading mb-6"><div>
           <h2 className={`text-3xl font-bold ${
             isDark ? 'text-white' : 'text-ink'
           }`}>
-            Bienvenido, {user?.name || 'Usuario'}
+            Tu carta, al día.
           </h2>
-          <p className={isDark ? 'text-muted mt-1' : 'text-muted mt-1'}>{user?.activeRestaurantName || user?.restaurantName}</p>
-        </div>
+          <p className="text-muted mt-1">Organiza tus platos, prepara tu carta y compártela con tus clientes.</p>
+        </div><Link href="/app/dashboard/menus/new" className="ui-button inline-flex items-center gap-2 bg-action px-5 py-3 text-white"><Plus size={18} aria-hidden="true" />Nueva carta</Link></div>
 
         {isLoading && (
           <Card>
@@ -99,90 +100,22 @@ function DashboardHome() {
           </Card>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card hoverable>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className={`text-lg font-semibold ${
-                isDark ? 'text-muted' : 'text-ink'
-              }`}>
-                Total Cartas
-              </h3>
-              <div className="p-3 bg-brand-soft rounded-lg">
-                <BookOpen className="text-brand" size={24} />
-              </div>
-            </div>
-            <p className="text-4xl font-bold text-brand">{menus.length}</p>
-            <p className={`text-sm mt-2 ${
-              isDark ? 'text-muted' : 'text-muted'
-            }`}>Cartas creadas</p>
-          </Card>
-
-          <Card hoverable>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className={`text-lg font-semibold ${
-                isDark ? 'text-muted' : 'text-ink'
-              }`}>
-                Secciones
-              </h3>
-              <div className="p-3 bg-brand-soft rounded-lg">
-                <FolderOpen className="text-brand" size={24} />
-              </div>
-            </div>
-            <p className="text-4xl font-bold text-brand">{totalSections}</p>
-            <p className={`text-sm mt-2 ${
-              isDark ? 'text-muted' : 'text-muted'
-            }`}>Categorías activas</p>
-          </Card>
-
-          <Card hoverable>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className={`text-lg font-semibold ${
-                isDark ? 'text-muted' : 'text-ink'
-              }`}>
-                Total Platos
-              </h3>
-              <div className="p-3 bg-brand-soft rounded-lg">
-                <UtensilsCrossed className="text-brand" size={24} />
-              </div>
-            </div>
-            <p className="text-4xl font-bold text-brand">{totalDishes}</p>
-            <p className={`text-sm mt-2 ${
-              isDark ? 'text-muted' : 'text-muted'
-            }`}>En tu menú</p>
-          </Card>
+        <div className="dashboard-summary">
+          <div><span><BookOpen size={18} />Cartas creadas</span><strong>{menus.length}</strong></div>
+          <div><span><FolderOpen size={18} />Secciones</span><strong>{totalSections}</strong></div>
+          <div><span><UtensilsCrossed size={18} />Platos en carta</span><strong>{totalDishes}</strong></div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card title="Acciones Rápidas">
-            <div className="space-y-3">
-              <a
-                href="/app/dashboard/menus/new"
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-action text-white rounded-lg hover:bg-action-hover transition-colors font-medium shadow-sm hover:shadow-md"
-              >
-                <Plus size={20} />
-                <span>Crear Nueva Carta</span>
-              </a>
-              <a
-                href="/app/dashboard/menus"
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-action text-white rounded-lg hover:bg-action-hover transition-colors font-medium shadow-sm hover:shadow-md"
-              >
-                <List size={20} />
-                <span>Gestionar Cartas</span>
-              </a>
-              <a
-                href={user?.activeRestaurantSlug && menus[0]?.slug ? `/menu/${user.activeRestaurantSlug}/${menus[0].slug}` : '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-action text-white rounded-lg hover:bg-action-hover transition-colors font-medium shadow-sm hover:shadow-md"
-                aria-disabled={!user?.activeRestaurantSlug || !menus[0]?.slug}
-              >
-                <Eye size={20} />
-                <span>Ver Menú Público</span>
-              </a>
+          <Card title="Tu próximo paso" subtitle="Lo esencial para poner tu carta en marcha">
+            <div className="dashboard-actions">
+              <Link href="/app/dashboard/menus/new"><Plus size={20} />Crear una nueva carta</Link>
+              <Link href="/app/dashboard/menus"><List size={20} />Gestionar mis cartas</Link>
+              {user?.activeRestaurantSlug && menus.find(menu => menu.isPublished)?.slug ? <a href={`/menu/${user.activeRestaurantSlug}/${menus.find(menu => menu.isPublished).slug}`} target="_blank" rel="noopener noreferrer"><Eye size={20} />Ver mi carta publicada</a> : <p className="px-3 py-2 text-xs text-muted">Publica una carta para compartirla con tus clientes.</p>}
             </div>
           </Card>
 
-          <Card title="Últimas Cartas">
+          <Card title="Tus últimas cartas">
             {menus.length > 0 ? (
               <div className="space-y-3">
                 {menus.slice(0, 5).map((menu) => (
@@ -204,9 +137,7 @@ function DashboardHome() {
                 ))}
               </div>
             ) : (
-              <p className={`text-center py-6 ${isDark ? 'text-muted' : 'text-muted'}`}>
-                No hay cartas creadas aún
-              </p>
+              <div className="dashboard-empty"><BookOpen size={34} strokeWidth={1.3} /><h3 className="text-lg">Aquí empieza tu próxima carta</h3><p>Agrega tus platos y ten todo listo para publicar.</p><Link href="/app/dashboard/menus/new" className="text-brand text-sm font-semibold underline underline-offset-4">Crear mi primera carta</Link></div>
             )}
           </Card>
         </div>
@@ -252,12 +183,12 @@ function DashboardHome() {
                   />
 
                   <Input
-                    label="Slug (opcional)"
+                    label="Dirección de tu carta (opcional)"
                     name="restaurantSlug"
                     placeholder="ej: casa-bonita"
                     value={restaurantSlug}
                     onChange={(e) => setRestaurantSlug(e.target.value)}
-                    helperText="Se usará en la URL pública"
+                    helperText="El nombre que aparecerá en el enlace de tu restaurante"
                   />
 
                   <Button

@@ -8,6 +8,8 @@ import { useNavigate } from '@/lib/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { Input, Button } from '../components/ui';
 import ThemeToggle from '@/components/marketing/ThemeToggle';
+import Brand from '@/components/Brand';
+import { QrCode, Mail, LockKeyhole } from 'lucide-react';
 
 const googleErrors = {
   google_cancelled: 'Cancelaste el acceso con Google. Puedes intentarlo nuevamente o entrar con tu correo.',
@@ -92,50 +94,18 @@ function Auth() {
   return (
     <div className="auth-background min-h-screen relative flex flex-col items-center justify-center gap-6 p-4 sm:p-6">
       <div className="flex w-full max-w-6xl items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2 font-semibold"><img src="/favicon.png" alt="" width={32} height={32} />MenuPro</Link>
+        <Brand />
         <ThemeToggle />
       </div>
       <div className="relative w-full max-w-6xl grid lg:grid-cols-[1.15fr_1fr] gap-8 items-stretch">
-        <div className="auth-story border border-white/10 rounded-2xl p-6 sm:p-10 shadow-xl flex flex-col gap-10">
-          <div className="flex items-start gap-4">
-            <div className="h-12 w-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
-              <img src="/favicon.png" alt="Logo de MenuPro" className="h-8 w-8" />
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.25em] text-[#c8dfd3]">MenuPro</p>
-              <h1 className="text-2xl font-semibold text-white leading-tight">Tu carta digital, siempre actualizada</h1>
-              <p className="text-sm text-slate-200/80">Crea, edita y comparte el menú de tu restaurante en minutos. Sin reimprimir, sin depender de terceros.</p>
-            </div>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            {[{
-              title: 'QR siempre actualizado',
-              desc: 'Actualiza platos y precios en tiempo real con códigos QR listos para compartir.',
-            }, {
-              title: 'Clientes felices',
-              desc: 'Ofrece a tus clientes una experiencia moderna y sin contacto.',
-            }, {
-              title: 'Seguridad reforzada',
-              desc: 'Sesiones protegidas y controles de acceso para tu equipo.',
-            }, {
-              title: 'Personaliza con tu marca',
-              desc: 'Adapta el diseño del menú digital a la identidad de tu restaurante.',
-            }].map((item) => (
-              <div key={item.title} className="p-4 rounded-xl bg-white/5 border border-white/10">
-                <h3 className="text-white font-semibold text-base">{item.title}</h3>
-                <p className="text-sm text-slate-200/70 mt-2">{item.desc}</p>
-              </div>
-            ))}
-          </div>
+        <div className="auth-story flex flex-col gap-10">
+          <div><span className="inline-block rounded-full border border-white/30 px-3 py-1.5 text-xs text-white/90">Tu carta, siempre al día</span><h1 className="mt-8">Todo empieza<br />con un buen menú.</h1><p>Deja tus platos listos para compartir. Cambia precios, suma nuevas recetas y dale a tu carta la identidad de tu local.</p></div>
+          <div className="auth-story-note"><QrCode size={36} strokeWidth={1.4} aria-hidden="true" /><div><strong>Una carta que cambia contigo.</strong><p>Actualiza tu menú. Conserva tu QR.</p></div></div>
         </div>
 
-        <div className="bg-surface rounded-2xl shadow-xl overflow-hidden border border-line relative">
+        <div className="auth-form-card bg-surface overflow-hidden border border-line relative">
           <div className="relative p-6 sm:p-10">
             <div className="text-left mb-6">
-              <div className="flex items-center gap-2 text-xs font-semibold text-brand uppercase tracking-[0.2em]">
-                <span className="inline-flex h-2 w-2 rounded-full bg-action" /> Acceso MenuPro
-              </div>
               <h2 className="text-3xl font-bold text-ink mt-2">
                 {isLogin ? 'Bienvenido de nuevo' : 'Crea tu acceso'}
               </h2>
@@ -185,7 +155,8 @@ function Auth() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                icon="📧"
+                icon={<Mail size={17} aria-hidden="true" />}
+                autoComplete="email"
               />
 
               <Input
@@ -196,7 +167,9 @@ function Auth() {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                icon="🔒"
+                icon={<LockKeyhole size={17} aria-hidden="true" />}
+                autoComplete={isLogin ? "current-password" : "new-password"}
+                minLength={isLogin ? undefined : 8}
                 helperText={!isLogin ? "Mínimo 8 caracteres" : ""}
               />
 

@@ -21,17 +21,12 @@ function MenuManagement() {
   return (
     <DashboardLayout>
       <div>
-        <div className="flex items-center justify-between mb-6">
+        <div className="dashboard-heading mb-6">
           <div>
-            <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-ink'}`}>Mis Cartas</h2>
-            <p className={`mt-1 ${isDark ? 'text-muted' : 'text-muted'}`}>Gestiona tus menús y cartas</p>
+            <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-ink'}`}>Mis cartas</h2>
+            <p className={`mt-1 ${isDark ? 'text-muted' : 'text-muted'}`}>Organiza, edita y publica las cartas de tu restaurante.</p>
           </div>
-          <Link href="/app/dashboard/menus/new">
-            <Button variant="primary">
-              <Plus size={18} className="inline mr-2" />
-              Nueva Carta
-            </Button>
-          </Link>
+          <Link href="/app/dashboard/menus/new" className="ui-button bg-action px-5 py-3 text-white"><Plus size={18} aria-hidden="true" />Nueva carta</Link>
         </div>
 
         {isLoading ? (
@@ -99,12 +94,8 @@ function MenuManagement() {
                     </span>
                   </div>
 
-                  <div className="flex gap-2">
-                    <Link href={`/app/dashboard/menus/${menu.id}`} className="flex-1">
-                      <Button variant="primary" size="sm" fullWidth>
-                        <Edit size={16} className="inline" />
-                      </Button>
-                    </Link>
+                  <div className="flex flex-wrap gap-2">
+                    <Link href={`/app/dashboard/menus/${menu.id}`} className="ui-button flex-1 bg-action px-3 py-2 text-white" aria-label={`Editar ${menu.name}`}><Edit size={16} aria-hidden="true" />Editar</Link>
                     <Button
                       variant={menu.isActive ? 'warning' : 'success'}
                       size="sm"

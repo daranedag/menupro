@@ -10,7 +10,7 @@ function Settings() {
     <DashboardLayout>
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
-          <h2 className="text-3xl font-bold text-ink">Configuración</h2>
+          <h2 className="text-3xl font-bold text-ink">Apariencia de tu carta</h2>
           <p className="mt-1 text-muted">Personaliza la apariencia de tu menú. Los colores y la tipografía se aplican a tu carta pública.</p>
         </div>
 
@@ -144,7 +144,7 @@ function Settings() {
                   className="text-xl font-bold"
                   style={{ color: theme.colors.accent }}
                 >
-                  $12.99
+                  $8.900
                 </span>
               </div>
               <div className="flex items-center justify-between p-4 rounded border">
@@ -158,7 +158,7 @@ function Settings() {
                   className="text-xl font-bold"
                   style={{ color: theme.colors.accent }}
                 >
-                  $15.99
+                  $9.900
                 </span>
               </div>
             </div>

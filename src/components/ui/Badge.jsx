@@ -15,7 +15,7 @@ function Badge({
     danger: 'bg-red-100 text-red-800',
     warning: 'bg-yellow-100 text-yellow-800',
     info: 'bg-cyan-100 text-cyan-800',
-    discount: 'bg-gradient-to-r from-orange-400 to-red-500 text-white',
+    discount: 'bg-amber-100 text-amber-900',
   };
   
   const sizes = {

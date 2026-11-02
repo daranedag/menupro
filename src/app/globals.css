@@ -15,11 +15,11 @@
 }
 
 :root { --color-bg-soft: #f8fafc; --color-text: #0f172a; --color-accent: #4f46e5; }
-body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #0f172a; background: white; }
+body { margin: 0; font-family: 'DM Sans', system-ui, sans-serif; color: #20382e; background: white; }
 button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
 button:not(:disabled), summary { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
-a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid #6366f1; outline-offset: 3px; }
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, [tabindex="0"]:focus-visible { outline: 3px solid #3f6b5b; outline-offset: 4px; }
 .text-muted { color: var(--color-text-muted, #64748b); }
 .border-default { border-color: #e2e8f0; }
 .btn-primary { color: white; background: #4f46e5; }
@@ -28,18 +28,18 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid 
 /* Shared MenuPro palette; restaurant colors are applied only inside menu previews. */
 .marketing-site, .app-site {
   --color-bg: #ffffff;
-  --color-bg-soft: #f6f7f5;
-  --color-bg-elevated: #eef2ef;
-  --color-text: #1a1a1a;
-  --color-text-muted: #6b7280;
-  --color-border: #e5e7eb;
-  --color-accent: #3f6b5b;
-  --color-accent-hover: #355c4f;
-  --color-accent-soft: #e6efec;
-  --marketing-button: #3f6b5b;
+  --color-bg-soft: #eff5f0;
+  --color-bg-elevated: #e7eee8;
+  --color-text: #20382e;
+  --color-text-muted: #617168;
+  --color-border: #dce5de;
+  --color-accent: #234d3c;
+  --color-accent-hover: #183b2c;
+  --color-accent-soft: #e3eee5;
+  --marketing-button: #234d3c;
   background: var(--color-bg);
   color: var(--color-text);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   color-scheme: light;
 }
@@ -52,6 +52,8 @@ html[data-marketing-theme="dark"] :is(.marketing-site, .app-site) {
   --color-border: #343e38;
   --color-accent: #91c7ae;
   --color-accent-soft: #1d3229;
+  --marketing-button: #3f6b5b;
+  --color-accent-hover: #355c4f;
   color-scheme: dark;
 }
 .app-site { min-height: 100vh; }
@@ -60,11 +62,9 @@ html[data-marketing-theme="dark"] :is(.marketing-site, .app-site) {
   .app-site :where(input, textarea, select) { background: var(--color-bg); color: var(--color-text); }
 }
 .app-site :is(a, button, input, textarea, select):focus-visible { outline-color: var(--color-accent); }
-.auth-background {
-  background: radial-gradient(ellipse at 10% 10%, var(--color-accent-soft), transparent 60%), var(--color-bg-soft);
-}
-.auth-story { background: linear-gradient(145deg, #3f6b5b, #284738); }
-html[data-marketing-theme="dark"] .auth-story { background: linear-gradient(145deg, #1d3229, #161a18); }
+.auth-background { background: var(--color-bg-soft); }
+.auth-story { background: #234d3c; }
+html[data-marketing-theme="dark"] .auth-story { background: #1d3229; }
 .marketing-site .text-muted { color: var(--color-text-muted); }
 .marketing-site .border-default { border-color: var(--color-border); }
 .marketing-site .btn-primary { background: var(--marketing-button); color: white; }

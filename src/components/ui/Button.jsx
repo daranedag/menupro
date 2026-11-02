@@ -10,16 +10,16 @@ function Button({
   className = '',
   ...props
 }) {
-  const baseStyles = 'font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles = 'ui-button inline-flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-brand disabled:opacity-50 disabled:cursor-not-allowed';
   
   const variants = {
-    primary: 'bg-action text-white hover:bg-action-hover hover:shadow-lg hover:-translate-y-0.5 active:scale-95 focus:ring-brand',
-    secondary: 'bg-elevated text-ink hover:bg-brand-soft hover:shadow-lg hover:-translate-y-0.5 active:scale-95 focus:ring-brand',
-    success: 'bg-green-600 text-white hover:bg-green-700 hover:shadow-lg hover:-translate-y-0.5 active:scale-95 focus:ring-green-500',
-    danger: 'bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:-translate-y-0.5 active:scale-95 focus:ring-red-500',
-    warning: 'bg-yellow-500 text-white hover:bg-yellow-600 hover:shadow-lg hover:-translate-y-0.5 active:scale-95 focus:ring-yellow-500',
-    outline: 'bg-transparent border-2 border-brand text-brand hover:bg-brand-soft hover:border-brand hover:shadow-md hover:-translate-y-0.5 active:scale-95 focus:ring-brand',
-    ghost: 'bg-transparent text-ink hover:bg-canvas hover:shadow-md hover:-translate-y-0.5 active:scale-95 focus:ring-gray-500',
+    primary: 'bg-action text-white hover:bg-action-hover',
+    secondary: 'bg-elevated text-ink hover:bg-brand-soft',
+    success: 'bg-green-700 text-white hover:bg-green-800',
+    danger: 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100',
+    warning: 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100',
+    outline: 'bg-transparent border border-line text-ink hover:bg-brand-soft',
+    ghost: 'bg-transparent text-muted hover:bg-canvas hover:text-ink',
   };
   
   const sizes = {

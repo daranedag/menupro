@@ -55,7 +55,7 @@ test('landing and login share the saved theme across navigation and reloads', as
   page.on('pageerror', error => errors.push(error.message));
   await page.emulateMedia({ colorScheme: 'light' });
   await page.goto('/');
-  await expect(page.locator('header a[href="/"] img')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'MenuPro, inicio', exact: true }).first()).toBeVisible();
   await page.getByRole('button', { name: 'Cambiar a modo oscuro', exact: true }).click();
   await page.getByRole('link', { name: 'Iniciar sesión', exact: true }).first().click();
   await expect(page.getByText('Utilizamos las apps de InsForge e InstaCloud')).toBeVisible();
@@ -92,7 +92,7 @@ test('business, billing, admin and dashboard use themed surfaces and controls', 
   finishLoading();
   for (const [label, heading] of [
     ['Mi negocio', 'Mi negocio y equipo'], ['Suscripción', 'Suscripción y pagos'],
-    ['Admin', 'Administración de MenuPro'], ['Dashboard', 'Bienvenido, Equipo MenuPro'],
+    ['Administración', 'Administración de MenuPro'], ['Inicio', 'Tu carta, al día.'],
   ]) {
     await page.getByRole('navigation', { name: 'Navegación principal', exact: true }).getByRole('link', { name: label, exact: true }).click();
     await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
@@ -136,4 +136,66 @@ test('restaurant palette and fonts stay local and saving preserves the restauran
   await expect(page.getByRole('button', { name: 'Cambiar a modo claro', exact: true })).toBeVisible();
   await expect.poll(() => background(page, 'header')).toBe(headerBefore);
   await page.screenshot({ path: 'artifacts/ui/settings-mobile-dark.png', fullPage: true });
+});
+
+test('example menu supports keyboard navigation and mobile navigation returns focus', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
+  await page.goto('/');
+  const firstTab = page.getByRole('tab', { name: 'Para compartir', exact: true });
+  await firstTab.focus();
+  await firstTab.press('ArrowRight');
+  await expect(page.getByRole('tab', { name: 'De la cocina', exact: true })).toBeFocused();
+  await expect(page.getByRole('tabpanel')).toContainText('Risotto de temporada');
+  await page.getByRole('tab', { name: 'De la cocina', exact: true }).press('End');
+  await expect(page.getByRole('tabpanel')).toContainText('Limonada de la casa');
+  await page.getByRole('tab', { name: 'Para beber', exact: true }).press('Home');
+  await expect(firstTab).toHaveAttribute('aria-selected', 'true');
+  await page.screenshot({ path: 'artifacts/ui/home-desktop.png', fullPage: true });
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 844 });
+    const overflow = await page.locator('body *').evaluateAll(elements => elements.filter(element => { const rect = element.getBoundingClientRect(); return rect.width > 0 && rect.right > innerWidth + 1; }).map(element => ({ element: element.tagName, className: element.className, right: element.getBoundingClientRect().right })).slice(0, 12));
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), JSON.stringify({ width, overflow })).toBe(true);
+  }
+  const menu = page.locator('button[aria-controls="marketing-mobile-menu"]');
+  await menu.click();
+  await expect(menu).toHaveAttribute('aria-expanded', 'true');
+  await page.getByRole('navigation', { name: 'Navegación móvil', exact: true }).getByRole('link', { name: 'Contacto', exact: true }).focus();
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeFocused();
+  await expect(menu).toHaveAttribute('aria-expanded', 'false');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: 'artifacts/ui/home-mobile.png', fullPage: true });
+  await page.goto('/app/login');
+  expect(await page.locator('.auth-form-card').evaluate(element => element.getBoundingClientRect().top)).toBeLessThan(await page.locator('.auth-story').evaluate(element => element.getBoundingClientRect().top));
+  await page.screenshot({ path: 'artifacts/ui/login-mobile.png', fullPage: true });
+});
+
+test('menu editor fits a phone and preview traps focus, closes with Escape and shows restaurant appearance', async ({ page }) => {
+  await panelSession(page);
+  await page.addInitScript(() => localStorage.setItem('theme', 'light'));
+  await page.route('**/api/menus/restaurant/restaurant', route => route.fulfill({ json: { data: [{ id: 'menu', name: 'Carta de temporada', slug: 'temporada', restaurantId: 'restaurant', isActive: true, sections: [{ id: 'section', name: 'Desde nuestra cocina', isActive: true, items: [{ id: 'dish', name: 'Ñoquis de papa con tomates de temporada', description: 'Hechos en casa con albahaca fresca.', price: 8900, isActive: true }] }] }] } }));
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto('/app/dashboard/menus/menu');
+  const preview = page.getByRole('button', { name: 'Vista Previa', exact: true });
+  await preview.click();
+  const dialog = page.getByRole('dialog', { name: 'Vista Previa del Menú', exact: true });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText('$8.900');
+  await expect(dialog.locator('.public-menu-header')).toHaveCSS('background-color', 'rgb(8, 145, 178)');
+  await dialog.getByRole('button', { name: 'Cerrar ventana' }).focus();
+  await page.keyboard.press('Shift+Tab');
+  expect(await dialog.evaluate(element => element.contains(document.activeElement))).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(dialog).not.toBeVisible();
+  await expect(preview).toBeFocused();
+  await page.screenshot({ path: 'artifacts/ui/editor-desktop.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('button', { name: 'Abrir menú', exact: true }).click();
+  await expect(page.getByRole('navigation', { name: 'Navegación principal', exact: true })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await preview.click();
+  await expect(dialog).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: 'artifacts/ui/menu-preview-mobile.png', fullPage: true });
 });

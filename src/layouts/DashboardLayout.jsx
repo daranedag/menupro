@@ -3,6 +3,7 @@ import Header from '../components/Header';
 import SubscriptionBanner from '@/components/business/SubscriptionBanner';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
+import ThemeToggle from '@/components/marketing/ThemeToggle';
 
 function DashboardLayout({ children }) {
   const { user } = useAuth();
@@ -10,14 +11,17 @@ function DashboardLayout({ children }) {
   const readOnlyMenu = path.startsWith('/app/dashboard/menus') && !user?.canEdit;
   
   return (
-    <div className="flex min-h-screen flex-col bg-canvas text-ink">
+    <div className="dashboard-shell min-h-screen bg-canvas text-ink">
       <Header isPublic={false} />
+      <div className="dashboard-body">
+      <div className="dashboard-topbar"><div><p>{user?.activeRestaurantName || user?.restaurantName || 'Tu espacio de trabajo'}</p><span>La carta de tu local, en tus manos.</span></div><ThemeToggle /></div>
       <SubscriptionBanner />
       
       {/* Main Content */}
-      <main className="flex-grow p-4 sm:p-6 overflow-auto">
+      <main className="dashboard-main">
         {readOnlyMenu ? <fieldset disabled className="contents">{children}</fieldset> : children}
       </main>
+      </div>
     </div>
   );
 }

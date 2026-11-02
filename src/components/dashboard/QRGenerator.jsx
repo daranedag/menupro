@@ -41,13 +41,14 @@ export default function QRGenerator({ menuId, menuName }) {
       >
         <div className="text-center">
           {!isPublished && <p role="status" className="mb-4 rounded-lg bg-amber-50 p-3 text-amber-800">Publica la carta para que tus clientes puedan abrir este QR.</p>}
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted mb-6">
             Escanea este código QR para acceder al menú digital
           </p>
           
           <div className="flex justify-center mb-6">
             <div className="p-4 bg-white border-4 border-gray-200 rounded-lg">
               <QRCodeCanvas
+                style={{ maxWidth: '100%', height: 'auto' }}
                 id="qr-code-canvas"
                 value={menuUrl}
                 size={256}
@@ -58,13 +59,14 @@ export default function QRGenerator({ menuId, menuName }) {
           </div>
 
           <div className="mb-6">
-            <p className="text-sm text-gray-500 mb-2">Link del menú:</p>
-            <div className="flex gap-2">
+            <label htmlFor="menu-public-link" className="mb-2 block text-sm text-muted">Enlace de tu carta</label>
+            <div className="flex flex-wrap gap-2">
               <input
                 type="text"
+                id="menu-public-link"
                 value={menuUrl}
                 readOnly
-                className="flex-1 px-3 py-2 border rounded-lg text-sm bg-gray-50"
+                className="min-w-0 flex-1 px-3 py-2 border rounded-lg text-sm bg-canvas"
               />
               <Button variant="outline" size="sm" onClick={copyLink}>
                 <Copy size={16} className="inline mr-1" />
@@ -73,7 +75,7 @@ export default function QRGenerator({ menuId, menuName }) {
             </div>
           </div>
 
-          <div className="flex gap-3 justify-center">
+          <div className="flex flex-wrap gap-3 justify-center">
             <Button variant="primary" onClick={downloadQR}>
               <Download size={18} className="inline mr-2" />
               Descargar QR

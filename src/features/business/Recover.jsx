@@ -22,7 +22,7 @@ export default function Recover() {
       setPassword('');
     } catch (failure) { setError(failure.message); } finally { setBusy(false); }
   }
-  return <main className="flex min-h-screen items-center justify-center bg-canvas px-6"><section className="w-full max-w-md rounded-2xl bg-surface p-7 text-ink">
+  return <main className="flex min-h-screen items-center justify-center bg-canvas px-6"><section className="w-full max-w-md rounded-2xl border border-line bg-surface p-7 text-ink">
     <Link href="/app/login" className="text-sm text-brand">← Volver al inicio de sesión</Link><h1 className="mt-5 text-2xl font-bold">Recuperar mi acceso</h1>
     {message && <p role="status" className="mt-4 rounded bg-emerald-50 p-3 text-sm text-emerald-900">{message}</p>}
     {error && <p role="alert" className="mt-4 text-sm text-red-700">{error}</p>}

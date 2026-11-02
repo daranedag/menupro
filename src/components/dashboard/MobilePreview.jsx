@@ -13,7 +13,7 @@ export default function MobilePreview({ menuId }) {
     <>
       <Button variant="outline" onClick={() => setShowPreview(true)}>
         <Smartphone size={18} className="inline mr-2" />
-        Preview Móvil
+        Vista móvil
       </Button>
 
       <Modal
@@ -23,7 +23,7 @@ export default function MobilePreview({ menuId }) {
         size="xl"
       >
         <div className="flex justify-center">
-          <div className="relative" style={{ width: '375px', height: '667px' }}>
+          <div className="relative max-w-full" style={{ width: '375px', height: '667px' }}>
             {/* Phone Frame */}
             <div className="absolute inset-0 border-8 border-gray-800 rounded-[3rem] shadow-2xl overflow-hidden bg-white">
               {/* Notch */}

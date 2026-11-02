@@ -4,6 +4,7 @@ import { Button } from '../ui';
 import { FileDown } from 'lucide-react';
 import { useState } from 'react';
 import { api } from '@/api/client';
+import { formatPrice } from '@/lib/format-price';
 
 export default function PDFGenerator({ menu }) {
   const [error, setError] = useState('');
@@ -97,7 +98,7 @@ export default function PDFGenerator({ menu }) {
 
               // Price al lado del nombre
               doc.setFont('helvetica', 'normal');
-              const priceText = `$${dish.price.toFixed(2)}`;
+              const priceText = formatPrice(dish.price);
               const priceWidth = doc.getTextWidth(priceText);
               doc.text(priceText, 190 - priceWidth, currentY + 5);
 
@@ -133,7 +134,7 @@ export default function PDFGenerator({ menu }) {
               doc.text(dish.name, 25, yPosition);
 
               doc.setFont('helvetica', 'normal');
-              const priceText = `$${dish.price.toFixed(2)}`;
+              const priceText = formatPrice(dish.price);
               const priceWidth = doc.getTextWidth(priceText);
               doc.text(priceText, 190 - priceWidth, yPosition);
 
@@ -165,7 +166,7 @@ export default function PDFGenerator({ menu }) {
 
             // Price
             doc.setFont('helvetica', 'normal');
-            const priceText = `$${dish.price.toFixed(2)}`;
+            const priceText = formatPrice(dish.price);
             const priceWidth = doc.getTextWidth(priceText);
             doc.text(priceText, 190 - priceWidth, yPosition);
 
