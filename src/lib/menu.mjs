@@ -8,7 +8,7 @@ export function menuPath(restaurantSlug, menuSlug) {
 }
 
 export function toDish(row) {
-  return { ...row, price: Number(row.price), discount: Number(row.discount ?? 0), image: row.image_url,
+  return { ...row, price: Number(row.price), discount: Number(row.discount ?? 0), image: row.image_url, imageAssetId: row.image_asset_id,
     longDescription: row.long_description, prepTime: row.prep_time, isVegetarian: row.is_vegetarian,
     isSpicy: row.is_spicy, isActive: row.available, isVisible: row.visible, orderIndex: row.order_index };
 }

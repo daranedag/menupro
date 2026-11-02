@@ -9,10 +9,11 @@ import { credentials, restaurantSchema, menuSchema, sectionSchema, dishSchema, m
 import { slugify, toMenu, toSection, toDish } from '@/lib/menu.mjs';
 import { businessSession, handleBusinessApi } from './business';
 import { enforceRequestLimit } from './security';
+import { handleImagesApi } from './images';
 
 type Client = Awaited<ReturnType<typeof createInsForge>>;
 const restaurantColumns = 'id,business_id,name,slug,phone,address,city,unit,no_physical_location,currency,theme,active,archived_at';
-const itemColumns = 'id,section_id,name,description,long_description,price,discount,image_url,tags,calories,prep_time,is_vegetarian,is_spicy,available,visible,order_index';
+const itemColumns = 'id,section_id,name,description,long_description,price,discount,image_url,image_asset_id,tags,calories,prep_time,is_vegetarian,is_spicy,available,visible,order_index';
 const sectionColumns = 'id,menu_id,name,description,icon,active,visible,order_index';
 const menuColumns = 'id,restaurant_id,name,slug,description,icon,is_published,active,visible,show_call_to_action,cta_title,cta_description,phone_number,delivery_url';
 const menuTree = `${menuColumns},sections:menupro_menu_sections(${sectionColumns},items:menupro_menu_items(${itemColumns}))`;
@@ -98,6 +99,9 @@ export async function handleApi(request: Request, context: { params: Promise<{ p
     const { data: userData, error: authError } = await client.auth.getCurrentUser();
     if (authError || !userData?.user) throw new HttpError('Debes iniciar sesión.', 401);
     const user = userData.user;
+
+    const imagesResponse = await handleImagesApi(request, path, client);
+    if (imagesResponse) return imagesResponse;
 
     const businessResponse = await handleBusinessApi(request, path, client, user);
     if (businessResponse) return businessResponse;

@@ -22,7 +22,7 @@ export const menuSchema = z.object({ restaurant_id: z.string().uuid(), name: sho
 export const sectionSchema = z.object({ name: shortText.min(1), description: z.string().max(2000).default(''), icon: z.string().max(20).optional(),
   order_index: z.number().int().min(0).default(0), isActive: z.boolean().optional(), isVisible: z.boolean().optional() });
 export const dishSchema = z.object({ name: shortText.min(1), description: z.string().max(2000).default(''), longDescription: z.string().max(5000).optional(),
-  price: z.number().min(0).max(99999999), discount: z.number().min(0).max(100).default(0), image: url.optional(),
+  price: z.number().min(0).max(99999999), discount: z.number().min(0).max(100).default(0), image: url.optional(), imageAssetId: z.string().uuid().nullable().optional(),
   calories: z.number().int().min(0).nullable().optional(), prepTime: z.number().int().min(0).nullable().optional(),
   isVegetarian: z.boolean().default(false), isSpicy: z.boolean().default(false), isActive: z.boolean().optional(), isVisible: z.boolean().optional(),
   order_index: z.number().int().min(0).default(0), tags: z.array(z.object({ label: shortText, variant: shortText })).max(20).default([]),
@@ -38,7 +38,7 @@ export function sectionWrite(data: z.infer<typeof sectionSchema>) {
 }
 export function dishWrite(data: z.infer<typeof dishSchema>) {
   return defined({ name: data.name, description: data.description, long_description: data.longDescription, price: data.price,
-    discount: data.discount, image_url: data.image, calories: data.calories, prep_time: data.prepTime,
+    discount: data.discount, image_url: data.image, image_asset_id: data.imageAssetId, calories: data.calories, prep_time: data.prepTime,
     is_vegetarian: data.isVegetarian, is_spicy: data.isSpicy, available: data.isActive, visible: data.isVisible,
     order_index: data.order_index, tags: data.tags });
 }

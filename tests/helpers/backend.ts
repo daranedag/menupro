@@ -13,7 +13,7 @@ export function query(sql: string) {
   return JSON.parse(result.stdout).rows;
 }
 export async function account(label: string) {
-  const context = await request.newContext({ baseURL: 'http://localhost:3000' });
+  const context = await request.newContext({ baseURL: process.env.MENUPRO_TEST_BASE_URL || 'http://localhost:3000' });
   const email = `menupro-${label}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@example.invalid`;
   const response = await context.post('/api/auth/register', { data: { email, password: 'MenuProTest123!' } });
   expect(response.status(), await response.text()).toBe(200);

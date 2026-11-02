@@ -5,8 +5,11 @@ import { useParams } from 'next/navigation';
 
 import { useMenu } from '../../contexts/MenuContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { Button, Input, Card, Badge } from '../../components/ui';
+import { Button, Input, Card } from '../../components/ui';
+import DishTag, { dishTagColors } from '@/components/menu/DishTag';
+import { Check, X } from 'lucide-react';
 import DashboardLayout from '../../layouts/DashboardLayout';
+import { ImagePicker } from './ImageLibrary';
 
 function DishForm() {
   const { menuId, sectionId, dishId } = useParams();
@@ -30,6 +33,7 @@ function DishForm() {
     price: existingDish?.price || '',
     discount: existingDish?.discount || 0,
     image: existingDish?.image || '',
+    imageAssetId: existingDish?.imageAssetId || null,
     calories: existingDish?.calories || '',
     prepTime: existingDish?.prepTime || '',
     isVegetarian: existingDish?.isVegetarian || false,
@@ -44,6 +48,7 @@ function DishForm() {
     setFormData({
       ...formData,
       [e.target.name]: value,
+      ...(e.target.name === 'image' ? { imageAssetId: null } : {}),
     });
   };
 
@@ -51,9 +56,9 @@ function DishForm() {
     if (newTag.label.trim()) {
       setFormData({
         ...formData,
-        tags: [...formData.tags, { ...newTag }],
+        tags: [...formData.tags, { ...newTag, label: newTag.label.trim() }],
       });
-      setNewTag({ label: '', variant: 'default' });
+      setNewTag(previous => ({ ...previous, label: '' }));
     }
   };
 
@@ -200,6 +205,8 @@ function DishForm() {
               />
             </div>
 
+            <ImagePicker onSelect={asset => setFormData(previous => ({ ...previous, image: asset.url, imageAssetId: asset.id }))} />
+
             <Input
               label="URL de Imagen (Opcional)"
               name="image"
@@ -209,6 +216,8 @@ function DishForm() {
               onChange={handleChange}
               fullWidth
             />
+
+            {formData.image && <Button variant="ghost" onClick={() => setFormData(previous => ({ ...previous, image: '', imageAssetId: null }))}>Quitar imagen</Button>}
 
             {formData.image && (
               <div className={`border rounded-lg p-4 ${
@@ -260,55 +269,38 @@ function DishForm() {
               </div>
             </div>
 
-            <div>
-              <label className={`block text-sm font-semibold tracking-tight mb-2 ${
-                isDark ? 'text-muted' : 'text-ink'
-              }`}>
-                Tags / Etiquetas
-              </label>
-              <div className="flex flex-wrap gap-2 mb-3">
+            <section aria-labelledby="dish-tags-heading" className="space-y-4">
+              <div><h3 id="dish-tags-heading" className="text-base font-semibold text-ink">Etiquetas del plato</h3>
+                <p className="mt-1 text-sm text-muted">Destaca algo especial, como «Sin gluten» o «Recomendado».</p></div>
+              {formData.tags.length > 0 && <ul aria-label="Etiquetas agregadas" className="flex flex-wrap gap-2">
                 {formData.tags.map((tag, index) => (
-                  <Badge key={index} variant={tag.variant}>
-                    {tag.label}
+                  <li key={index}><DishTag variant={tag.variant}>
+                    <span className="min-w-0 break-words">{tag.label}</span>
                     <button
                       type="button"
+                      aria-label={`Quitar etiqueta ${tag.label}`}
                       onClick={() => handleRemoveTag(index)}
-                      className="ml-2 text-xs hover:font-bold"
+                      className="inline-flex size-7 shrink-0 items-center justify-center rounded hover:bg-black/15 focus-visible:outline-offset-0"
                     >
-                      ×
+                      <X size={14} aria-hidden="true" />
                     </button>
-                  </Badge>
+                  </DishTag></li>
                 ))}
+              </ul>}
+              <fieldset><legend className="mb-2 text-sm font-medium text-ink">Color de la etiqueta</legend>
+                <div className="flex flex-wrap gap-3">{dishTagColors.map(color => <label key={color.value} className="relative cursor-pointer">
+                  <input type="radio" name="tagColor" value={color.value} checked={newTag.variant === color.value} onChange={() => setNewTag(previous => ({ ...previous, variant: color.value }))} className="peer sr-only" />
+                  <DishTag variant={color.value} className="min-h-10 gap-2 px-3 peer-checked:ring-2 peer-checked:ring-brand peer-checked:ring-offset-2 peer-checked:ring-offset-surface peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-brand">
+                    {color.label}<Check size={14} aria-hidden="true" className={newTag.variant === color.value ? 'opacity-100' : 'opacity-0'} />
+                  </DishTag>
+                </label>)}</div>
+              </fieldset>
+              <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-end">
+                <Input label="Nombre de la etiqueta" name="newTagLabel" value={newTag.label} maxLength={255} onChange={event => setNewTag(previous => ({ ...previous, label: event.target.value }))} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); handleAddTag(); } }} placeholder="Ej. Sin gluten" className="min-w-0 sm:flex-1" />
+                <Button type="button" variant="outline" onClick={handleAddTag} disabled={!newTag.label.trim()}>Agregar etiqueta</Button>
               </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newTag.label}
-                  onChange={(e) => setNewTag({ ...newTag, label: e.target.value })}
-                  placeholder="Nombre del tag"
-                  className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent ${
-                    isDark ? 'bg-elevated border-line text-white placeholder-muted' : 'bg-surface border-line text-ink placeholder-muted'
-                  }`}
-                />
-                <select
-                  value={newTag.variant}
-                  onChange={(e) => setNewTag({ ...newTag, variant: e.target.value })}
-                  className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent ${
-                    isDark ? 'bg-elevated border-line text-white' : 'bg-surface border-line text-ink'
-                  }`}
-                >
-                  <option value="default">Default</option>
-                  <option value="primary">Primary</option>
-                  <option value="success">Success</option>
-                  <option value="danger">Danger</option>
-                  <option value="warning">Warning</option>
-                  <option value="info">Info</option>
-                </select>
-                <Button type="button" variant="outline" onClick={handleAddTag}>
-                  Agregar
-                </Button>
-              </div>
-            </div>
+              {newTag.label.trim() && <div className="flex flex-wrap items-center gap-2 text-sm text-muted">Así se verá: <DishTag variant={newTag.variant}><span className="min-w-0 break-words">{newTag.label.trim()}</span></DishTag></div>}
+            </section>
 
             <div className={`flex gap-3 pt-4 border-t ${
               isDark ? 'border-line' : 'border-line'

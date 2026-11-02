@@ -5,11 +5,12 @@ import { usePathname } from 'next/navigation';
 import { useNavigate } from '@/lib/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import Brand from './Brand';
-import { LayoutDashboard, BookText, Settings, LogOut, Menu, X, Shield, Building2, CreditCard } from 'lucide-react';
+import { LayoutDashboard, BookText, Settings, LogOut, Menu, X, Shield, Building2, CreditCard, Images } from 'lucide-react';
 
 const dashboardLinks = [
   { href: '/app/dashboard', label: 'Inicio', icon: LayoutDashboard },
   { href: '/app/dashboard/menus', label: 'Mis cartas', icon: BookText },
+  { href: '/app/dashboard/images', label: 'Imágenes', icon: Images },
   { href: '/app/dashboard/settings', label: 'Apariencia', icon: Settings },
   { href: '/app/dashboard/business', label: 'Mi negocio', icon: Building2 },
   { href: '/app/dashboard/billing', label: 'Suscripción', icon: CreditCard },

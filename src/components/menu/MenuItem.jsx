@@ -1,6 +1,7 @@
 'use client';
 import { Flame, Clock3, Leaf } from 'lucide-react';
 import Badge from '../ui/Badge';
+import DishTag from './DishTag';
 import { formatPrice } from '@/lib/format-price';
 
 export default function MenuItem({ item }) {
@@ -10,7 +11,7 @@ export default function MenuItem({ item }) {
   return <article className="menu-item">
     {item.image && <img src={item.image} alt={item.name} className="menu-item-image" loading="lazy" />}
     <div className="menu-item-content"><div className="menu-item-heading"><h3>{item.name}</h3><div className="menu-item-price">{hasDiscount && <del>{formatPrice(price)}</del>}{formatPrice(finalPrice)}</div></div>
-      {(hasDiscount || item.tags?.length > 0) && <div className="mt-2 flex flex-wrap gap-1">{hasDiscount && <Badge variant="discount" size="sm">-{item.discount}%</Badge>}{item.tags?.map((tag, index) => <Badge key={tag.label + index} variant={tag.variant || 'default'} size="sm">{tag.label}</Badge>)}</div>}
+      {(hasDiscount || item.tags?.length > 0) && <div className="mt-2 flex flex-wrap gap-1.5">{hasDiscount && <Badge variant="discount" size="sm">-{item.discount}%</Badge>}{item.tags?.map((tag, index) => <DishTag key={tag.label + index} variant={tag.variant}><span className="min-w-0 break-words">{tag.label}</span></DishTag>)}</div>}
       {item.description && <p className="menu-item-description">{item.description}</p>}{item.longDescription && <p className="menu-item-description">{item.longDescription}</p>}
       {(item.calories || item.prepTime || item.isVegetarian || item.isSpicy) && <div className="menu-item-details">
         {item.calories && <span className="flex items-center gap-1"><Flame size={13} aria-hidden="true" />{item.calories} cal</span>}
