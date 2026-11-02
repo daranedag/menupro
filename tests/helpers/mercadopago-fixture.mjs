@@ -1,14 +1,23 @@
 // Imported only by the isolated integration-test server. Never changes app code
 // or its production provider origin, and cannot pass through to real payments.
 import { readFileSync, writeFileSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 const originalFetch = globalThis.fetch;
 const file = '.insforge/payment-fixture.json';
 globalThis.fetch = async function(input, init) {
   const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url);
-  if (url.hostname !== 'api.mercadopago.com') return originalFetch(input, init);
+  if (!['api.mercadopago.com','api.resend.com'].includes(url.hostname)) return originalFetch(input, init);
   const project = JSON.parse(readFileSync('.insforge/project.json', 'utf8'));
   const parent = JSON.parse(readFileSync('.insforge/project.parent.json', 'utf8'));
   if (project.project_id === parent.project_id || process.env.NODE_ENV === 'production') throw Error('Provider fixtures require an isolated development backend.');
+  if (url.hostname === 'api.resend.com') {
+    if (url.pathname !== '/emails' || init?.method !== 'POST') throw Error('Unsupported email fixture endpoint.');
+    const emailFile = '.insforge/resend-fixture.json'; const emails = JSON.parse(readFileSync(emailFile,'utf8'));
+    const key = init.headers['Idempotency-Key'];
+    let message = emails.messages.find(item => item.key === key);
+    if (!message) { message = { id: randomUUID(), key, payload: JSON.parse(init.body) }; emails.messages.push(message); writeFileSync(emailFile,JSON.stringify(emails)); }
+    return Response.json({ id: message.id });
+  }
   const state = JSON.parse(readFileSync(file, 'utf8'));
   const method = init?.method ?? 'GET'; let value;
   if (url.pathname === '/users/me') value = { id: 3426677054, tags: ['test_user'] };

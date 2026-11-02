@@ -1,5 +1,7 @@
 # Operación comercial de MenuPro
 
+El lanzamiento está limitado a **Local mensual**. Administración permite habilitar por separado Grupo y anualidad; las opciones desactivadas aparecen como «Próximamente». El panel incorpora carga y envío de boletas PDF y alertas operativas. Ver [la operación de lanzamiento](lanzamiento-local-mensual.md).
+
 Implementación del acuerdo del 31 de octubre de 2026. Consultar `reglas-de-negocio.md` para precios, límites y políticas.
 
 ## Recorridos

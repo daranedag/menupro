@@ -16,12 +16,13 @@ export async function deliverQueuedNotifications({ rpc, config, appUrl, fetchEma
     if (now() - started >= budgetMs) { deferred = notices.length - index; break; }
     const result = await sendResendEmail({ to: notice.email, subject: notice.subject,
       idempotencyKey: `menupro-notification/${notice.id}`,
+      tags: [{ name: 'menupro_notification', value: notice.id }],
       html: `<div lang="es" style="font-family:Arial,sans-serif;color:#0f172a;max-width:560px;margin:auto;padding:32px"><h1 style="font-size:24px">${emailEscape(notice.subject)}</h1><p>${emailEscape(notice.message)}</p><p><a href="${emailEscape(link)}">Revisar mi cuenta en MenuPro</a></p><p>Este aviso corresponde a tu cuenta de MenuPro.</p></div>`,
       text: `${notice.subject}\n\n${notice.message}\n\nRevisa tu cuenta: ${link}`,
     }, config, fetchEmail);
     // If this acknowledgement fails, keep the lease. The next run reuses the same
     // Resend idempotency key instead of claiming that the accepted message failed.
-    await rpc('menupro_complete_notification', { p_notification_id: notice.id, p_token: notice.token, p_sent: result.emailSent });
+    await rpc('menupro_ack_notification', { p_notification_id: notice.id, p_token: notice.token, p_sent: result.emailSent, p_email_id: result.emailId ?? null });
     if (result.emailSent) emailed++; else emailFailures++;
     if (result.httpStatus === 429 || result.httpStatus === 401 || result.httpStatus === 403) {
       deferred = notices.length - index - 1; break;

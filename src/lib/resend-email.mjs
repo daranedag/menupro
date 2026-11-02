@@ -17,7 +17,9 @@ export async function sendResendEmail(message, config, fetchEmail = fetch) {
       method: 'POST', headers: { Authorization: `Bearer ${config.apiKey.trim()}`,
         'Content-Type': 'application/json', 'Idempotency-Key': message.idempotencyKey },
       body: JSON.stringify({ from: config.from.trim(), to: [message.to], subject: message.subject,
-        html: message.html, text: message.text, ...(config.replyTo ? { reply_to: config.replyTo.trim() } : {}) }),
+        html: message.html, text: message.text, ...(config.replyTo ? { reply_to: config.replyTo.trim() } : {}),
+        ...(message.attachments ? { attachments: message.attachments } : {}),
+        tags: [{ name: 'application', value: 'menupro' }, ...(message.tags ?? [])] }),
       signal: AbortSignal.timeout(10000), cache: 'no-store',
     });
     if (!response.ok) return { emailSent: false, emailStatus: 'failed', httpStatus: response.status };

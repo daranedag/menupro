@@ -1,6 +1,6 @@
 # Boletas de honorarios y conciliación
 
-Decisión del titular del 1 de noviembre de 2026: emisión manual de boletas de honorarios, sin facturas; mantener los precios brutos de Local y Grupo. No sumar IVA a las contrataciones nuevas. Los registros anteriores conservan su tratamiento original.
+Decisión del titular: emisión manual de boletas de honorarios, sin facturas; mantener los precios brutos. El titular confirmó que su giro y servicio permiten emitir estos documentos. El lanzamiento ofrece solo Local mensual; Grupo y anualidad se habilitan desde administración. No sumar IVA a las contrataciones nuevas. Los registros anteriores conservan su tratamiento original. Ver [el alcance del lanzamiento](lanzamiento-local-mensual.md).
 
 ## Importes
 
@@ -11,15 +11,15 @@ Decisión del titular del 1 de noviembre de 2026: emisión manual de boletas de 
 
 Bienvenida Local: $7.992 brutos en cada una de las tres primeras mensualidades, o $89.910 brutos el primer año. Cuando el receptor retiene, en 2026 el cobro regular mensual de Local es $8.467 y la retención $1.523. Con bienvenida son $6.773 y $1.219, respectivamente. Cuando el emisor paga PPM, el cliente paga el bruto completo. Las comisiones de Mercado Pago no cambian el bruto ni la retención de la boleta.
 
-La tasa se determina en horario de Chile: 15,25% en 2026; 16% en 2027 y 17% desde 2028. La actualización de las renovaciones considera `next_payment_date` del proveedor. Una diferencia entre el año programado y el año de aprobación queda marcada para revisión tributaria. Confirmar con contabilidad que el giro y el servicio efectivamente prestado admiten la emisión de honorarios antes de activar cobros reales; la selección del documento no realiza esa validación tributaria.
+La tasa se determina en horario de Chile: 15,25% en 2026; 16% en 2027 y 17% desde 2028. La actualización de las renovaciones considera `next_payment_date` del proveedor. Una diferencia entre el año programado y el año de aprobación queda marcada para revisión tributaria. La compatibilidad del giro y del servicio fue confirmada por el titular; la aplicación no realiza esa validación tributaria.
 
 ## Operación
 
 1. El propietario guarda RUT válido, nombre o razón social, domicilio, comuna, correo y modalidad de retención en **Suscripción**. Selecciona la modalidad legal que corresponde al receptor.
 2. MenuPro cotiza en el servidor, muestra bruto, retención e importe a cobrar y guarda una copia de esos datos en la contratación. Para modificarlos con una renovación activa, cancelar esa renovación y realizar una contratación nueva. Los registros históricos no cambian.
 3. Solo un pago aprobado y validado contra Mercado Pago genera acceso y una boleta pendiente. La autorización de una tarjeta no acredita un período.
-4. En **Administración → Boletas de honorarios**, consultar la bandeja paginada y emitir y entregar manualmente el documento del SII. Registrar folio y fecha reales. MenuPro no genera un documento fiscal ni presenta declaraciones tributarias.
-5. El aviso de registro se encola y envía por **Resend** al correo tributario guardado. Incluye el folio y el enlace a Suscripción; no adjunta la boleta del SII. Repetir la misma confirmación no genera otro aviso.
+4. En **Administración → Boletas de honorarios**, consultar la bandeja paginada, emitir el documento en el SII y registrar folio y fecha reales junto a su PDF privado. MenuPro no genera un documento fiscal ni presenta declaraciones tributarias.
+5. El botón **Enviar boleta por correo** encola y envía el PDF adjunto por **Resend** al correo tributario guardado. Se registra la aceptación y se procesan las confirmaciones firmadas de entrega, demora o rechazo. Repetir el envío de un documento aceptado no genera otro correo. El cliente también puede descargarlo desde Suscripción.
 6. Devoluciones, contracargos o diferencias de año requieren revisión. No se anula automáticamente ningún documento del SII. El registro de pago descargable es informativo.
 
 ## Recuperación de pagos
@@ -36,7 +36,7 @@ Para activar el mantenimiento de pagos, desplegar primero el mismo modo y sus cr
 
 `tests/integration/local-release.spec.ts` recorre navegador → API → PostgreSQL aislado: demo, carta y QR público, contratación, autorización sin cobro, cobro sin webhook, repetición, renovación, rechazo, fin de gracia, reactivación, fin del descuento, aislamiento tributario y registro de boleta. Mercado Pago se sustituye únicamente en el servidor de pruebas mediante un módulo de pruebas; el código de producción siempre utiliza la API oficial.
 
-Iniciar ese servidor solo con una rama de InsForge vinculada: `node tests/helpers/start-payments-server.mjs`. Ejecutar `pnpm exec playwright test`. Correos deshabilitados y ninguna llamada financiera al proveedor en ese recorrido. Las pruebas unitarias cubren firma, importes, cambios de año, paginación y recuperación de fallos. Estas pruebas no certifican el checkout ni la entrega efectiva de webhooks de Mercado Pago; esos puntos necesitan una prueba separada con vendedor y comprador de prueba.
+Iniciar ese servidor solo con una rama de InsForge vinculada: `node tests/helpers/start-payments-server.mjs`. Ejecutar `pnpm exec playwright test`. Pagos y correos utilizan proveedores simulados: no se envían correos reales ni se realizan llamadas financieras externas en ese recorrido. La prueba `00-launch-operations.spec.ts` verifica los switches, permisos del PDF, envío único y eventos firmados de Resend. Las pruebas unitarias cubren firma, importes, cambios de año, paginación y recuperación de fallos. Estas pruebas no certifican el checkout ni la entrega efectiva de webhooks de Mercado Pago; esos puntos necesitan una prueba separada con vendedor y comprador de prueba.
 
 ## Referencias primarias
 

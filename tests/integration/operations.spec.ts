@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { account, query, restaurant, session, startTrial, worker } from '../helpers/backend';
+test.beforeEach(() => { query('UPDATE public.menupro_commercial_settings SET grupo_enabled=true,annual_enabled=true'); });
+test.afterEach(() => { query('UPDATE public.menupro_commercial_settings SET grupo_enabled=false,annual_enabled=false'); });
 
 test('administrators review duplicates, grant expiring courtesies and prepare unstarted demos', async () => {
   test.setTimeout(240000);

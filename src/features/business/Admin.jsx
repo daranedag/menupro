@@ -5,6 +5,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/api/client';
 import { Button, Input } from '@/components/ui';
 import FiscalAdmin from './FiscalAdmin';
+import CommercialAdmin from './CommercialAdmin';
+import OperationsAdmin from './OperationsAdmin';
 
 export default function Admin() {
   const { user } = useAuth();
@@ -30,6 +32,8 @@ export default function Admin() {
   if (!user?.isAdmin) return <DashboardLayout><p>No tienes acceso a la administración de MenuPro.</p></DashboardLayout>;
   return <DashboardLayout><div className="mx-auto max-w-6xl space-y-6 text-slate-900">
     <h2 className="text-2xl font-bold dark:text-white">Administración de MenuPro</h2>
+    <CommercialAdmin onChanged={load} />
+    <OperationsAdmin />
     {error && <p role="alert" className="rounded bg-red-50 p-4 text-red-800">{error}</p>}
     {message && <p role="status" className="rounded bg-emerald-50 p-4 text-emerald-900">{message}</p>}
     <section className="rounded-xl border bg-white p-5"><h3 className="text-lg font-semibold">Solicitudes de demo por revisar</h3>
@@ -68,8 +72,8 @@ export default function Admin() {
     }}><h3 className="text-lg font-semibold">Registrar una transferencia verificada</h3>
       <label className="block text-sm">Negocio<select aria-label="Negocio del pago por transferencia" required value={bank.businessId} onChange={event => setBank(p => ({ ...p, businessId: event.target.value }))} className="mt-1 w-full rounded border p-2">
         <option value="">Seleccionar</option>{(overview?.businesses ?? []).map(b => <option key={b.id} value={b.id}>{b.name} · {b.owner_email || 'Invitación pendiente'}</option>)}</select></label>
-      <div className="flex flex-wrap gap-4"><label className="text-sm">Plan<select aria-label="Plan del pago por transferencia" value={bank.planId} onChange={event => setBank(p => ({ ...p, planId: event.target.value }))} className="ml-2 rounded border p-2"><option value="local">Local</option><option value="grupo">Grupo</option></select></label>
-        <label className="text-sm">Período<select aria-label="Período del pago por transferencia" value={bank.cycle} onChange={event => setBank(p => ({ ...p, cycle: event.target.value }))} className="ml-2 rounded border p-2"><option value="monthly">Mensual</option><option value="annual">Anual</option></select></label></div>
+      <div className="flex flex-wrap gap-4"><label className="text-sm">Plan<select aria-label="Plan del pago por transferencia" value={bank.planId} onChange={event => setBank(p => ({ ...p, planId: event.target.value }))} className="ml-2 rounded border p-2"><option value="local">Local</option><option value="grupo" disabled={!overview?.availability?.grupo_enabled}>{overview?.availability?.grupo_enabled ? 'Grupo' : 'Grupo · próximamente'}</option></select></label>
+        <label className="text-sm">Período<select aria-label="Período del pago por transferencia" value={bank.cycle} onChange={event => setBank(p => ({ ...p, cycle: event.target.value }))} className="ml-2 rounded border p-2"><option value="monthly">Mensual</option><option value="annual" disabled={!overview?.availability?.annual_enabled}>{overview?.availability?.annual_enabled ? 'Anual' : 'Anual · próximamente'}</option></select></label></div>
       <Input label="Referencia única del comprobante" name="bankReference" value={bank.reference} onChange={event => setBank(p => ({ ...p, reference: event.target.value }))} minLength={4} maxLength={200} required forceLight />
       <Input label="Monto efectivamente recibido en CLP, descontando la retención del receptor si corresponde" name="bankGrossAmount" type="number" min={1} step={1} value={bank.grossAmount} onChange={event => setBank(p => ({ ...p, grossAmount: event.target.value }))} required forceLight />
       <Input label="Detalle de la verificación" name="bankReason" value={bank.reason} onChange={event => setBank(p => ({ ...p, reason: event.target.value }))} minLength={5} maxLength={1000} required forceLight />

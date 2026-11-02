@@ -2,13 +2,13 @@
 
 ## Transporte
 
-Las invitaciones de equipo, demos asistidas y los avisos de demo, impago, suspensión, reactivación y conservación usan la API de Resend. `src/lib/resend-email.mjs` centraliza el envío y `src/lib/notification-email.mjs` procesa la cola de avisos.
+Las invitaciones de equipo, demos asistidas, boletas PDF, alertas operativas y los avisos de demo, impago, suspensión, reactivación y conservación usan la API de Resend. `src/lib/resend-email.mjs` centraliza el envío y `src/lib/notification-email.mjs` procesa la cola de avisos. Ver [el módulo de boletas y alertas](lanzamiento-local-mensual.md).
 
 El horario `menupro-lifecycle-hourly` de InsForge sigue generando los avisos. Su función llama por HTTPS a `/api/internal/notifications` en Next.js, con el secreto privado de operaciones. Next reclama avisos de la base de datos y los envía a través de Resend. El endpoint no acepta destinatarios ni mensajes proporcionados por el solicitante. Ni la función ni Next necesitan una clave administrativa de InsForge para estos envíos; la clave de Resend permanece en Vercel.
 
 Las reservas de diez minutos evitan que dos ejecuciones reclamen el mismo aviso. Cada aviso usa una clave estable de idempotencia de Resend. Se espacian los envíos y se deja de procesar la tanda ante límites de frecuencia o un error de autorización. Los errores quedan pendientes para volver a intentar; se marca enviado solamente si Resend devuelve un identificador de correo válido. Si falla la confirmación en la base después de aceptar el correo, el reintento reutiliza la misma clave. Resend conserva estas claves durante 24 horas; no es una garantía de entrega exactamente una vez tras interrupciones más largas.
 
-`email_sent_at` significa aceptación por el proveedor, no llegada comprobada a la bandeja del destinatario. La revisión de entrega, rebotes y spam se realiza en Resend. No se ha añadido un webhook de seguimiento de entrega.
+`email_sent_at` significa aceptación por el proveedor, no llegada comprobada a la bandeja del destinatario. El endpoint `/api/emails/resend/webhook` verifica la firma Svix sobre el cuerpo original y registra entrega al servidor destinatario, demora, rechazo o reclamo de los mensajes de MenuPro reconocidos. Su activación exige registrar el destino en Resend y guardar `RESEND_WEBHOOK_SECRET` como secreto de producción. La bandeja de administración y las alertas reflejan esos eventos.
 
 ## Dominio y remitente
 

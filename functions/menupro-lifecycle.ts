@@ -13,6 +13,7 @@ export default async function(request: Request): Promise<Response> {
   const [a, b] = await Promise.all([hash(secret), hash(supplied)]);
   let difference = 0; for (let i = 0; i < a.length; i++) difference |= a[i] ^ b[i];
   if (difference !== 0) return json({ error: 'No autorizado.' }, 401);
+  let markFailure: (() => Promise<unknown>) | undefined;
   try {
     const baseUrl = Deno.env.get('MENUPRO_BACKEND_URL')!;
     const client = createClient({ baseUrl, anonKey: Deno.env.get('ANON_KEY'), isServerMode: true });
@@ -20,6 +21,8 @@ export default async function(request: Request): Promise<Response> {
       const { data, error } = await client.database.rpc(name, { p_secret: secret, ...args });
       if (error) throw new Error('Operation failed: ' + name); return data;
     };
+    markFailure = () => rpc('menupro_record_heartbeat', { p_phase: 'finished', p_ok: false });
+    await rpc('menupro_record_heartbeat', { p_phase: 'started' });
     const lifecycle = await rpc('menupro_run_lifecycle');
     const expiredHistory = await rpc('menupro_expire_abuse_history');
     let emailed = 0; let emailFailures = 0;
@@ -53,8 +56,20 @@ export default async function(request: Request): Promise<Response> {
         } catch { paymentDispatchFailed = true; errors.push('No se completó la conciliación de pagos.'); }
       })(),
     ]);
-    return json({ ...lifecycle, expiredHistory, emailed, emailFailures, deferred, payments: paymentResult, errors }, emailDispatchFailed || paymentDispatchFailed ? 503 : 200);
+    const ok = !emailDispatchFailed && !paymentDispatchFailed && emailFailures === 0 && paymentResult.failures === 0;
+    await rpc('menupro_record_heartbeat', { p_phase: 'finished', p_ok: ok,
+      p_summary: { email_failures: emailFailures + Number(emailDispatchFailed), payment_failures: paymentResult.failures + Number(paymentDispatchFailed) } });
+    // Independent monitoring also invokes this endpoint if this job stops running.
+    try {
+      const app = new URL(Deno.env.get('MENUPRO_APP_URL') || '');
+      if (app.protocol !== 'https:') throw new Error('HTTPS required');
+      const response = await fetch(new URL('/api/internal/operations', app), { method: 'POST',
+        headers: { 'x-menupro-worker-secret': secret }, redirect: 'error', signal: AbortSignal.timeout(40000) });
+      if (!response.ok) errors.push('No se completó la comprobación de alertas.');
+    } catch { errors.push('No se completó la comprobación de alertas.'); }
+    return json({ ...lifecycle, expiredHistory, emailed, emailFailures, deferred, payments: paymentResult, errors }, ok && errors.length === 0 ? 200 : 503);
   } catch (error) {
+    try { await markFailure?.(); } catch { /* The external watchdog detects a missing heartbeat. */ }
     console.error(error instanceof Error ? error.message : 'MenuPro lifecycle failed');
     return json({ error: 'No se pudo completar el mantenimiento de MenuPro.' }, 500);
   }

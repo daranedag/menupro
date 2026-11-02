@@ -18,6 +18,6 @@ test('request bodies cannot turn the reminder endpoint into an arbitrary email r
   const response = await request.post('/api/internal/notifications', { headers,
     data: { to: 'other@example.invalid', subject: 'Untrusted', html: 'Untrusted' } });
   expect(response.status()).toBe(200);
-  expect(await response.json()).toEqual({ emailed: 0, emailFailures: 0, deferred: 0, emailStatus: 'processed' });
+  expect(await response.json()).toEqual({ emailed: 0, emailFailures: 0, deferred: 0, emailStatus: 'processed', fiscal: { emailed: 0, emailFailures: 0, emailStatus: 'processed' } });
   expect(await response.text()).not.toContain('local-email-test-only');
 });

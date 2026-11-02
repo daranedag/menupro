@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/api/client';
 import { Button, Input } from '@/components/ui';
 import BillingProfile from './BillingProfile';
+import { planAvailable } from '@/lib/commercial.mjs';
 
 const money = value => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(value);
 const date = value => value ? new Date(value).toLocaleDateString('es-CL') : 'Sin período pagado';
@@ -38,6 +39,7 @@ export default function Billing() {
   useEffect(() => {
     // Quote only after the saved billing profile arrives, before consent is shown.
     if (!businessId || !owner || !data) return;
+    if (!planAvailable(planId, cycle, data.availability)) { setQuote(null); setAccepted(false); return; }
     let current = true;
     setQuote(null); setAccepted(false);
     api.post('/api/billing/quote', { planId, cycle, purpose }).then(response => { if (current) setQuote(response.data); })
@@ -67,12 +69,12 @@ export default function Billing() {
     <div className="grid gap-5 sm:grid-cols-2">{(data?.plans ?? []).map(plan => <section key={plan.id} className={`rounded-xl border bg-white p-5 ${planId === plan.id ? 'ring-2 ring-indigo-500' : ''}`}>
       <h3 className="text-xl font-bold">{plan.name}</h3><p className="mt-2 text-2xl font-semibold">{money(cycle === 'annual' ? plan.annual_net : plan.monthly_net)} <span className="text-sm font-normal">brutos / {cycle === 'annual' ? 'año' : 'mes'}</span></p>
       <p className="mt-3 text-sm">{plan.max_restaurants === 1 ? '1 restaurante' : `Hasta ${plan.max_restaurants} restaurantes`}. Cartas y platos ilimitados, QR, personalización y PDF.</p>
-      {owner && <Button className="mt-4" disabled={busy} onClick={() => { setPlanId(plan.id); setError(''); }}>Elegir {plan.name}</Button>}
+      {owner && <Button className="mt-4" disabled={busy || !planAvailable(plan.id, cycle, data?.availability)} onClick={() => { setPlanId(plan.id); setError(''); }}>{plan.id === 'grupo' && !data?.availability?.grupo_enabled ? 'Grupo · próximamente' : `Elegir ${plan.name}`}</Button>}
     </section>)}</div>
     {owner && <BillingProfile profile={data?.profile} onSaved={load} onDirty={setProfileDirty} />}
     {owner ? <section className="rounded-xl border bg-white p-5"><h3 className="text-lg font-semibold">{upgrade ? 'Mejorar mi plan' : 'Continuar con MenuPro'}</h3>
       <label className="mt-4 block text-sm font-medium">Modalidad de pago <select value={cycle} onChange={event => setCycle(event.target.value)} className="ml-2 rounded border p-2" disabled={busy}>
-        <option value="monthly">Mensual</option><option value="annual">Anual · pagas 10 meses y usas 12</option></select></label>
+        <option value="monthly">Mensual</option><option value="annual" disabled={!data?.availability?.annual_enabled}>{data?.availability?.annual_enabled ? 'Anual · pagas 10 meses y usas 12' : 'Anual · próximamente'}</option></select></label>
       {quote ? <div className="mt-4 rounded-lg bg-slate-50 p-4 text-sm"><p>Honorario bruto: {money(quote.honorarium_gross)}</p><p>Retención del receptor: {money(quote.withholding_amount)} {quote.withholding_party === 'recipient' ? `(${Number((quote.retention_rate * 100).toFixed(2))}%)` : '(PPM a cargo del emisor)'}</p>
         <p className="mt-2 text-lg font-bold">{upgrade ? 'Diferencia por este período' : 'Primer cobro'}: {money(quote.gross_amount)}</p>
         <p className="mt-2">Inicio previsto: {date(quote.starts_at)}. {cycle === 'annual' ? 'El año se paga completo en un cobro.' : 'Se cobra cada mes.'}</p>
@@ -106,7 +108,8 @@ export default function Billing() {
     {owner && <section className="rounded-xl border bg-white p-5"><h3 className="text-lg font-semibold">Boletas de honorarios</h3>
       {!data?.documents?.length ? <p className="mt-3 text-sm">Las boletas aparecerán después de confirmar cada pago.</p> : <ul className="mt-3 divide-y">{data.documents.map(document => <li key={document.payment_id} className="py-3 text-sm">
         <p>{document.status === 'issued' ? `Boleta N.º ${document.folio} · ${document.issued_date}` : 'Pendiente de emisión manual'} · Bruto {money(document.honorarium_gross)} · Retención {money(document.withholding_amount)}</p>
-        <p className="mt-1 text-slate-600">Pago: {document.payment_id}. {document.review_required ? 'Documento en revisión administrativa.' : 'La entrega del documento del SII se realiza manualmente.'}</p>
+        <p className="mt-1 text-slate-600">Pago: {document.payment_id}. {document.review_required ? 'Documento en revisión administrativa.' : document.email_accepted_at ? 'Boleta enviada por correo.' : 'La boleta se emite manualmente y se envía por correo al estar disponible.'}</p>
+        {document.storage_key && <a className="mt-2 inline-block text-indigo-700 underline" href={'/api/billing/document/' + encodeURIComponent(document.payment_id)}>Descargar boleta PDF</a>}
       </li>)}</ul>}
     </section>}
     <section className="rounded-xl border bg-white p-5"><h3 className="text-lg font-semibold">Historial de pagos</h3>

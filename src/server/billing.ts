@@ -10,6 +10,8 @@ import { invitationEmailReady } from './email';
 import { validRut } from '@/lib/honorarios.mjs';
 import { recoverPayments } from '@/lib/payment-recovery.mjs';
 import { collectorMatchesMode, paymentMatchesEnvironment } from '@/lib/payment-environment.mjs';
+import { commercialSettings } from './commercial';
+import { downloadFiscalPdf } from './fiscal';
 
 type MpRecord = Record<string, any>;
 const providerId = /^[a-zA-Z0-9_-]{1,128}$/;
@@ -75,9 +77,12 @@ export async function handleBillingApi(request: Request, path: string[], client:
     ]);
     [plans, payments, checkouts, profile, documents].forEach(result => check(result.error));
     return respond({ subscription: context.subscription, plans: plans.data, payments: payments.data, checkouts: checkouts.data,
-      profile: profile.data, documents: documents.data, configuration: await checkedPaymentReadiness() });
+      profile: profile.data, documents: documents.data, availability: await commercialSettings(), configuration: await checkedPaymentReadiness() });
   }
   if (context.business_role !== 'owner') throw new HttpError('Solo el propietario puede gestionar los pagos.', 403);
+  if (path[1] === 'document' && path.length === 3 && request.method === 'GET') {
+    return downloadFiscalPdf(client, path[2], context.business_id);
+  }
   if (route === 'billing/profile' && request.method === 'POST') {
     const input = z.object({ rut: z.string().trim().refine(validRut, 'El RUT no es válido.'), legalName: z.string().trim().min(3).max(200),
       address: z.string().trim().min(5).max(250), commune: z.string().trim().min(2).max(100), email: z.string().trim().email().max(254),

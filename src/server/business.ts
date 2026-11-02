@@ -5,6 +5,9 @@ import { createInsForge } from './insforge';
 import { check, HttpError, respond } from './http';
 import { handleBillingApi, paymentReadiness } from './billing';
 import { deliverInvitation } from './email';
+import { uploadFiscalPdf, sendFiscalPdf, downloadFiscalPdf } from './fiscal';
+import { commercialSettings } from './commercial';
+import { adminOperations, checkOperations } from './operations';
 
 export type BusinessClient = Awaited<ReturnType<typeof createInsForge>>;
 type Restaurant = { id: string; business_id: string; name: string; slug: string; archived_at: string | null; [key: string]: unknown };
@@ -125,12 +128,26 @@ export async function handleBusinessApi(request: Request, path: string[], client
   if (path[0] === 'billing') return handleBillingApi(request, path, client, user, context);
   if (path[0] === 'admin') {
     if (!context.is_admin) throw new HttpError('No tienes permiso para administrar MenuPro.', 403);
+    if (route === 'admin/commercial' && method === 'GET') return respond(await commercialSettings());
+    if (route === 'admin/commercial' && method === 'POST') {
+      const input = z.object({ grupo_enabled: z.boolean(), annual_enabled: z.boolean() }).strict().parse(await readJson(request));
+      return respond(await rpc(client, 'menupro_admin_set_commercial', { p_grupo_enabled: input.grupo_enabled, p_annual_enabled: input.annual_enabled }));
+    }
+    if (route === 'admin/operations' && method === 'GET') return respond(await adminOperations(client));
+    if (route === 'admin/operations/check' && method === 'POST') return respond(await checkOperations());
+    if (route === 'admin/fiscal/upload' && method === 'POST') return uploadFiscalPdf(request, client);
+    if (route === 'admin/fiscal/send' && method === 'POST') {
+      const input = z.object({ paymentId: z.string().min(1).max(250) }).strict().parse(await readJson(request));
+      return sendFiscalPdf(client, input.paymentId);
+    }
+    if (route === 'admin/fiscal/file' && method === 'GET') return downloadFiscalPdf(client, z.string().min(1).max(250).parse(new URL(request.url).searchParams.get('paymentId')));
     if (route === 'admin/fiscal' && method === 'GET') {
       const params = new URL(request.url).searchParams;
       const status = z.enum(['pending', 'issued', 'all']).parse(params.get('status') ?? 'pending');
       const offset = z.coerce.number().int().min(0).max(100000).parse(params.get('offset') ?? 0);
       let documentQuery = client.database.from('menupro_fiscal_documents').select('*', { count: 'exact' });
-      if (status !== 'all') documentQuery = documentQuery.eq('status', status);
+      if (status === 'pending') documentQuery = documentQuery.or('status.eq.pending,email_accepted_at.is.null,delivery_state.in.(failed,unknown,bounced,complained,delayed)');
+      if (status === 'issued') documentQuery = documentQuery.eq('status', 'issued');
       const [documents, jobs] = await Promise.all([
         documentQuery.order('created_at', { ascending: true }).range(offset, offset + 49),
         client.database.from('menupro_reconciliation_jobs').select('request_id,last_checked_at,last_success_at,failures,next_attempt_at').order('failures', { ascending: false }).limit(100),
@@ -143,7 +160,7 @@ export async function handleBusinessApi(request: Request, path: string[], client
         issuedDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }).strict().parse(await readJson(request));
       return respond(await rpc(client, 'menupro_admin_issue_honorarium', { p_payment_id: input.paymentId, p_folio: input.folio, p_issued_date: input.issuedDate }));
     }
-    if (route === 'admin/overview' && method === 'GET') return respond({ ...(await rpc(client, 'menupro_admin_overview', {})), payments: paymentReadiness() });
+    if (route === 'admin/overview' && method === 'GET') return respond({ ...(await rpc(client, 'menupro_admin_overview', {})), payments: paymentReadiness(), availability: await commercialSettings() });
     if (route === 'admin/review' && method === 'POST') {
       const input = z.object({ claimId: uuid, approve: z.boolean(), reason: z.string().trim().min(5).max(1000) }).strict().parse(await readJson(request));
       return respond(await rpc(client, 'menupro_admin_review', { p_claim_id: input.claimId, p_approve: input.approve, p_reason: input.reason }));

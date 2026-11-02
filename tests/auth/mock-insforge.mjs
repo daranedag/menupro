@@ -56,6 +56,7 @@ const server = createServer(async (request, response) => {
   if (url.pathname === '/api/database/records/menupro_restaurants') return send(200, []);
   if (url.pathname === '/api/database/rpc/menupro_rate_limit') return send(200, true);
   if (url.pathname === '/api/database/rpc/menupro_claim_notifications') return send(200, []);
+  if (url.pathname === '/api/database/rpc/menupro_claim_fiscal_delivery') return send(200, null);
   if (url.pathname === '/api/database/rpc/menupro_session') return send(200, {
     business_id: '805fd754-3883-43fc-8350-25cc1c0b82c9', business_role: 'owner', is_admin: false,
     businesses: [{ id: '805fd754-3883-43fc-8350-25cc1c0b82c9', name: 'Mi negocio', role: 'owner' }], restaurants: [], invitations: [],

@@ -11,7 +11,7 @@ function queue(notices = [notice]) {
   const completed = []; let claims = 0;
   return { completed, get claims() { return claims; }, async rpc(name, args) {
     if (name === 'menupro_claim_notifications') { claims++; return notices; }
-    assert.equal(name, 'menupro_complete_notification'); completed.push(args);
+    assert.equal(name, 'menupro_ack_notification'); completed.push(args);
   } };
 }
 
@@ -37,7 +37,7 @@ test('leased reminders use Resend, stable idempotency, escaped content and the c
     return Response.json({ id: 'resend-1' });
   } });
   assert.equal(result.emailed, 1); assert.equal(result.emailFailures, 0);
-  assert.deepEqual(q.completed, [{ p_notification_id: notice.id, p_token: notice.token, p_sent: true }]);
+  assert.deepEqual(q.completed, [{ p_notification_id: notice.id, p_token: notice.token, p_sent: true, p_email_id: 'resend-1' }]);
 });
 
 test('rate limiting releases the failed notice, leaves remaining leases for retry and does not mark anything sent', async () => {

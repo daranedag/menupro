@@ -27,3 +27,4 @@ playwright-report/
 test-results/
 .vercel/
 artifacts/
+.menupro-operations-state.json

@@ -76,7 +76,7 @@ test('Local: demo, public QR, checkout, missed webhook, renewal, rejection, susp
     expect(issued.status(), await issued.text()).toBe(200);
     const notices = await customer.sdk.database.from('menupro_notifications').select('subject,recipient_email,email_sent_at').eq('business_id', customer.user.businessId);
     const notice = notices.data?.find((item: any) => item.subject === 'Boleta de honorarios registrada');
-    expect(notice?.recipient_email).toBe(customer.email); expect(notice?.email_sent_at).toBeNull();
+    expect(notice).toBeUndefined(); // Delivery now requires the actual uploaded PDF.
     const receipt = await customer.context.get('/api/billing/receipt/' + document.payment_id); expect(await receipt.text()).not.toContain('IVA incluido');
     await page.goto('/app/dashboard/billing'); await expect(page.getByText(/Boleta N.º/)).toBeVisible();
     await page.screenshot({ path: 'artifacts/local-release-billing.png', fullPage: true });

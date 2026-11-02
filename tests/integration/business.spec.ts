@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { account, query, restaurant, session, startTrial, worker } from '../helpers/backend';
+test.beforeEach(() => { query('UPDATE public.menupro_commercial_settings SET grupo_enabled=true,annual_enabled=true'); });
+test.afterEach(() => { query('UPDATE public.menupro_commercial_settings SET grupo_enabled=false,annual_enabled=false'); });
 
 test('trial identity detects repeated restaurants across accounts without blocking namesakes', async () => {
   test.setTimeout(180000);
