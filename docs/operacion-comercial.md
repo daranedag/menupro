@@ -72,3 +72,13 @@ Las ocho migraciones comerciales se aplicaron a DieGui Dev después de probarlas
 - Validar el recorrido comercial en la aplicación ya publicada en Vercel y aplicar nuevos despliegues al modificar variables.
 
 La revisión de coincidencias está disponible como proceso administrativo. No se ha contratado un proveedor de SMS ni activado una verificación telefónica automática.
+
+## Bienvenida mensual individual
+
+Administración puede acordar un porcentaje y una cantidad de mensualidades para un negocio antes de que inicie una contratación o reciba su primer pago. La operación `menupro_admin_set_welcome` exige identidad administrativa verificada y un motivo registrado. El cliente no puede modificar estos valores. Los valores predeterminados siguen siendo 20% y tres mensualidades; la anualidad conserva 10% en el primer año.
+
+La personalización sustituye la bienvenida habitual y no se suma a ella. Cotización, checkout, validación de pagos, boleta y actualización del siguiente importe usan las mismas condiciones. El checkout conserva una copia de las condiciones acordadas. Una autorización o un rechazo no consume el beneficio; un pago aprobado lo consume una sola vez. No se cambia la fecha de término de la demo.
+
+Para Local mensual, 95% durante una mensualidad produce un honorario bruto inicial de $500 por redondeo y $9.990 brutos desde la siguiente. El importe cobrado contempla la retención aplicable al receptor. La aceptación del importe en el checkout real del proveedor se confirma durante la validación productiva.
+
+Prueba aislada: `pnpm exec node tests/helpers/check-welcome-terms.mjs`. Requiere una rama temporal con verificación de correo desactivada; crea identidades sintéticas, usa sus sesiones reales y comprueba permisos, aislamiento, cotizaciones, autorización, rechazo, duplicados, renovación y boletas, sin llamar al proveedor ni enviar mensajes. La comprobación rechaza el backend principal. Eliminar la rama después de probar.

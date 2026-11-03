@@ -26,3 +26,15 @@ test('checkout redirects only allow HTTPS Mercado Pago domains', () => {
   assert.throws(() => safeCheckoutUrl('javascript:alert(1)'));
   assert.throws(() => safeCheckoutUrl('http://www.mercadopago.cl/pay'));
 });
+
+test('a business-specific welcome price survives authorization and ends after its first approved payment', () => {
+  const subscription = { billing_cycle: 'monthly', monthly_net: 9990, annual_net: 99900,
+    tax_mode: 'honorarios', billing_snapshot: { withholding_party: 'emitter' }, checkout_welcome: true,
+    welcome_payments_used: 0, monthly_welcome_percent: 95, monthly_welcome_payments: 1 };
+  assert.equal(recurringGross(subscription, '2026-11-18'), 500);
+  assert.equal(recurringGross({ ...subscription, welcome_payments_used: 1 }, '2026-12-18'), 9990);
+  assert.equal(recurringGross({ ...subscription, welcome_payments_used: 2 }, '2027-01-18'), 9990);
+  assert.equal(recurringGross({ ...subscription, checkout_welcome: false }, '2026-11-18'), 9990);
+  assert.equal(recurringGross({ ...subscription, monthly_welcome_percent: undefined, monthly_welcome_payments: undefined }, '2026-11-18'), 7992);
+  assert.equal(recurringGross({ ...subscription, billing_cycle: 'annual' }, '2026-11-18'), 89910);
+});

@@ -17,9 +17,11 @@ export function recurringGross(subscription, date = new Date()) {
   let net = cycle === 'annual' ? subscription.annual_net : subscription.monthly_net;
   const welcome = subscription.checkout_welcome ?? Boolean(subscription.welcome_redeemed_at);
   const welcomeCycle = subscription.welcome_cycle ?? (welcome ? cycle : null);
+  const monthlyPayments = subscription.monthly_welcome_payments ?? 3;
+  const monthlyPercent = subscription.monthly_welcome_percent ?? 20;
   if (welcome && welcomeCycle === cycle &&
-    subscription.welcome_payments_used < (cycle === 'annual' ? 1 : 3)) {
-    net = Math.round(net * (cycle === 'annual' ? 0.9 : 0.8));
+    subscription.welcome_payments_used < (cycle === 'annual' ? 1 : monthlyPayments)) {
+    net = Math.round(net * (cycle === 'annual' ? 0.9 : (100 - monthlyPercent) / 100));
   }
   return subscription.tax_mode === 'honorarios'
     ? honorariumAmounts(net, subscription.billing_snapshot.withholding_party, date).gross_amount
