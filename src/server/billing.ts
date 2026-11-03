@@ -10,6 +10,7 @@ import { invitationEmailReady } from './email';
 import { validRut } from '@/lib/honorarios.mjs';
 import { recoverPayments } from '@/lib/payment-recovery.mjs';
 import { collectorMatchesMode, paymentMatchesEnvironment } from '@/lib/payment-environment.mjs';
+import { mercadoPagoFailure } from '@/lib/mercadopago-errors.mjs';
 import { commercialSettings } from './commercial';
 import { downloadFiscalPdf } from './fiscal';
 
@@ -51,7 +52,11 @@ export async function mercadoPago(path: string, method = 'GET', data?: unknown, 
     headers: { Authorization: 'Bearer ' + process.env.MERCADOPAGO_ACCESS_TOKEN, 'Content-Type': 'application/json',
       ...(idempotencyKey ? { 'X-Idempotency-Key': idempotencyKey } : {}) },
     body: data ? JSON.stringify(data) : undefined, cache: 'no-store', signal: AbortSignal.timeout(method === 'GET' ? 5000 : 15000) });
-  if (!result.ok) throw new HttpError('Mercado Pago no pudo completar la operación. Puedes reintentar sin perder tu contenido.', 502);
+  if (!result.ok) {
+    const failure = mercadoPagoFailure(result.status, await result.json().catch(() => null));
+    console.error('MenuPro Mercado Pago:', { method, resource: path.split('/')[1]?.split('?')[0], ...failure.diagnostic });
+    throw new HttpError(failure.message, failure.status);
+  }
   return result.json();
 }
 

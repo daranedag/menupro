@@ -32,6 +32,7 @@ test('a business-specific welcome price survives authorization and ends after it
     tax_mode: 'honorarios', billing_snapshot: { withholding_party: 'emitter' }, checkout_welcome: true,
     welcome_payments_used: 0, monthly_welcome_percent: 95, monthly_welcome_payments: 1 };
   assert.equal(recurringGross(subscription, '2026-11-18'), 500);
+  assert.equal(recurringGross({ ...subscription, monthly_welcome_percent: 90 }, '2026-11-18'), 999);
   assert.equal(recurringGross({ ...subscription, welcome_payments_used: 1 }, '2026-12-18'), 9990);
   assert.equal(recurringGross({ ...subscription, welcome_payments_used: 2 }, '2027-01-18'), 9990);
   assert.equal(recurringGross({ ...subscription, checkout_welcome: false }, '2026-11-18'), 9990);

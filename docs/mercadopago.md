@@ -41,6 +41,8 @@ Mantener el modo `disabled` hasta completar la firma, el despliegue y el entorno
 
 ## Comprobación de conexión
 
+Validación productiva del 3 de noviembre de 2026: crear una suscripción pendiente por $500 respondió HTTP 400 con `Cannot pay an amount lower than $ 950.00`. La consulta por referencia no encontró una suscripción creada. El titular autorizó sustituir la oferta individual de 95% por 90% solo en la primera mensualidad ($999 brutos), conservando el resto de condiciones y el término de la demo. La solicitud fallida conserva sus importes originales y debe anularse antes de reservar una nueva; no se modifica el precio de un checkout existente. El BFF traduce este rechazo conocido a HTTP 422 con el mínimo informado y registra únicamente diagnóstico seguro, sin credenciales ni datos del pagador.
+
 Ejecutar `pnpm payments:check` desde este repositorio. Solo consulta la API de suscripciones y muestra el estado HTTP, sin imprimir tokens, datos del pagador ni registros del proveedor. No crea ni autoriza cobros. Un resultado correcto no acredita todavía la firma del webhook ni el pago completo.
 
 ## Prueba completa antes de habilitar cobros
