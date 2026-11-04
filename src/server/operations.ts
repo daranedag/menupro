@@ -16,35 +16,53 @@ export function operationsAuthorized(request: Request) {
   return equal(supplied, monitor) ? 'external' : equal(internal, worker) ? 'worker' : false;
 }
 
-export async function checkOperations() {
+const operationDate = new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Santiago' });
+const recipient = () => process.env.RESEND_ADMIN_EMAIL || 'daranedag@gmail.com';
+
+export async function checkOperations({ sendDigest = false } = {}) {
   const status = await workerRpc('menupro_check_operations');
   const config = emailConfiguration();
-  const to = process.env.RESEND_ADMIN_EMAIL || process.env.RESEND_REPLY_TO;
-  let alerted = 0; let failures = 0;
-  if (!to || !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(to) || !resendReady(config)) return { ...status, alertsReady: false, alerted, failures };
-  const started = Date.now();
-  for (let index = 0; index < 5 && Date.now() - started < 30000; index++) {
-    const alert = await workerRpc('menupro_claim_operational_alert');
-    if (!alert) break;
-    const url = new URL('/app/dashboard/admin', process.env.APP_URL || 'https://www.menupro.cl').href;
-    const result = await sendResendEmail({ to, subject: alert.subject, text: alert.message + '\n\n' + url,
-      html: `<div lang="es" style="font-family:Arial,sans-serif;color:#0f172a;padding:24px"><h1>${emailEscape(alert.subject)}</h1><p>${emailEscape(alert.message)}</p><p><a href="${emailEscape(url)}">Revisar administración de MenuPro</a></p></div>`,
-      idempotencyKey: `menupro-operations/${alert.id}` }, config);
-    await workerRpc('menupro_complete_operational_alert', { p_id: alert.id, p_token: alert.claim_token, p_email_id: result.emailId ?? null });
-    if (result.emailSent) alerted++; else { failures++; break; }
-    await new Promise(resolve => setTimeout(resolve, 650));
-  }
-  return { ...status, alertsReady: true, alerted, failures };
+  const to = recipient();
+  const alertsReady = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(to) && resendReady(config);
+  const resultStatus = { ...status, alertsReady, alerted: 0, failures: 0 };
+  if (!sendDigest || !alertsReady) return resultStatus;
+  const digest = await workerRpc('menupro_claim_operations_digest');
+  if (!digest) return resultStatus;
+
+  const subject = `MenuPro · Resumen operativo del ${digest.report_date}`;
+  const url = new URL('/app/dashboard/admin/alertas', process.env.APP_URL || 'https://www.menupro.cl').href;
+  const { changes, open, change_count: changeCount } = digest.payload as {
+    changes: { subject: string; created_at: string }[];
+    open: { summary: string; opened_at: string }[];
+    change_count: number;
+  };
+  const lines = [
+    'Corte diario a las 17:00, hora de Santiago.',
+    '',
+    `Alertas y recuperaciones pendientes de informar: ${changeCount}`,
+    ...changes.map(change => `• ${operationDate.format(new Date(change.created_at))} · ${change.subject}`),
+    ...(changeCount > changes.length ? ['Consulta el historial para ver el resto de los cambios.'] : []),
+    '',
+    `Incidentes abiertos al cierre: ${open.length}`,
+    ...open.map(incident => `• ${incident.summary} · Desde ${operationDate.format(new Date(incident.opened_at))}`),
+  ];
+  const result = await sendResendEmail({ to, subject, text: [...lines, '', url].join('\n'),
+    html: `<div lang="es" style="font-family:Arial,sans-serif;color:#0f172a;padding:24px"><h1>${emailEscape(subject)}</h1><p>${lines.map(emailEscape).join('<br>')}</p><p><a href="${emailEscape(url)}">Ver alertas operativas</a></p></div>`,
+    idempotencyKey: `menupro-operations-digest/${digest.report_date}` }, config);
+  await workerRpc('menupro_complete_operations_digest', { p_day: digest.report_date, p_token: digest.claim_token, p_email_id: result.emailId ?? null });
+  return { ...resultStatus, alerted: result.emailSent ? 1 : 0, failures: result.emailSent ? 0 : 1 };
 }
 
-export async function adminOperations(client: BusinessClient) {
-  const [heartbeat, incidents, alerts] = await Promise.all([
+export async function adminOperations(client: BusinessClient, offset: number) {
+  const [heartbeat, active, alerts, digests] = await Promise.all([
     client.database.from('menupro_operation_heartbeat').select('*').eq('id', true).single(),
-    client.database.from('menupro_operational_incidents').select('*').order('opened_at', { ascending: false }).limit(100),
-    client.database.from('menupro_operational_alerts').select('id,subject,transition,created_at,accepted_at,attempts').order('created_at', { ascending: false }).limit(50),
+    client.database.from('menupro_operational_incidents').select('*').is('resolved_at', null).order('opened_at', { ascending: false }).limit(100),
+    client.database.from('menupro_operational_alerts').select('id,subject,message,transition,created_at,accepted_at,digest_date,details_snapshot,incident:menupro_operational_incidents(*)')
+      .order('created_at', { ascending: false }).order('id', { ascending: false }).range(offset, offset + 50),
+    client.database.from('menupro_operational_digests').select('report_date,attempts,accepted_at').order('report_date', { ascending: false }).limit(7),
   ]);
-  [heartbeat, incidents, alerts].forEach(result => check(result.error));
-  return { heartbeat: heartbeat.data, incidents: incidents.data, alerts: alerts.data,
-    recipient: process.env.RESEND_ADMIN_EMAIL || process.env.RESEND_REPLY_TO || '',
-    resendReady: resendReady(emailConfiguration()), deliveryWebhooksReady: Boolean(process.env.RESEND_WEBHOOK_SECRET) };
+  [heartbeat, active, alerts, digests].forEach(result => check(result.error));
+  return { heartbeat: heartbeat.data, incidents: active.data, alerts: alerts.data?.slice(0, 50),
+    hasMore: (alerts.data?.length ?? 0) > 50, digests: digests.data,
+    recipient: recipient(), resendReady: resendReady(emailConfiguration()) };
 }

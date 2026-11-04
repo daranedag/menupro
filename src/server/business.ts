@@ -29,7 +29,7 @@ export async function readJson(request: Request) {
 
 export async function businessSession(client: BusinessClient): Promise<BusinessContext> {
   const selected = (await cookies()).get('menupro_business')?.value;
-  const { data, error } = await client.database.rpc('menupro_session', { p_business_id: selected && uuid.safeParse(selected).success ? selected : null });
+  const { data, error } = await client.database.rpc('menupro_panel_session', { p_business_id: selected && uuid.safeParse(selected).success ? selected : null });
   check(error);
   return data as BusinessContext;
 }
@@ -49,6 +49,7 @@ export async function handleBusinessApi(request: Request, path: string[], client
   const context = await businessSession(client);
   const method = request.method;
   const route = path.join('/');
+  if (context.is_admin && path[0] !== 'admin') throw new HttpError('Esta cuenta usa el panel de administración.', 403);
   if (route === 'business' && method === 'GET') return respond(context);
   if (route === 'business/select' && method === 'POST') {
     const { id } = z.object({ id: uuid }).strict().parse(await readJson(request));
@@ -133,8 +134,40 @@ export async function handleBusinessApi(request: Request, path: string[], client
       const input = z.object({ grupo_enabled: z.boolean(), annual_enabled: z.boolean() }).strict().parse(await readJson(request));
       return respond(await rpc(client, 'menupro_admin_set_commercial', { p_grupo_enabled: input.grupo_enabled, p_annual_enabled: input.annual_enabled }));
     }
-    if (route === 'admin/operations' && method === 'GET') return respond(await adminOperations(client));
+    if (route === 'admin/operations' && method === 'GET') {
+      const offset = z.coerce.number().int().min(0).max(1000000).parse(new URL(request.url).searchParams.get('offset') ?? 0);
+      return respond(await adminOperations(client, offset));
+    }
     if (route === 'admin/operations/check' && method === 'POST') return respond(await checkOperations());
+    if (route === 'admin/records' && method === 'GET') {
+      const params = new URL(request.url).searchParams;
+      const kind = z.enum(['businesses', 'logs', 'transfers', 'claims']).parse(params.get('kind'));
+      const offset = z.coerce.number().int().min(0).max(1000000).parse(params.get('offset') ?? 0);
+      const from = z.string().date().nullable().parse(params.get('from') || null);
+      const to = z.string().date().nullable().parse(params.get('to') || null);
+      if (from && to && from > to) throw new HttpError('La fecha inicial debe ser anterior o igual a la final.');
+      const actor = z.string().trim().max(255).parse(params.get('actor') ?? '');
+      const event = z.string().trim().max(100).parse(params.get('event') ?? '');
+      const status = z.enum(['all', 'review', 'granted', 'denied']).parse(params.get('status') ?? 'all');
+      const rows = await rpc(client, 'menupro_admin_records', { p_kind: kind, p_offset: offset,
+        p_from: from, p_to: to, p_actor: actor, p_event: event, p_status: status });
+      return respond({ rows: rows.slice(0, 50), hasMore: rows.length > 50 });
+    }
+    if (route === 'admin/business-details' && method === 'GET') {
+      const id = uuid.parse(new URL(request.url).searchParams.get('id'));
+      const details = await rpc(client, 'menupro_admin_business_details', { p_business_id: id });
+      if (!details) throw new HttpError('Negocio no encontrado.', 404);
+      return respond(details);
+    }
+    if (route === 'admin/business-choices' && method === 'GET') {
+      return respond(await rpc(client, 'menupro_admin_business_choices', {}));
+    }
+    if (route === 'admin/first-month-offer' && method === 'POST') {
+      const input = z.object({ businessId: uuid, percent: z.number().int().min(1).max(95),
+        reason: z.string().trim().min(5).max(1000) }).strict().parse(await readJson(request));
+      return respond(await rpc(client, 'menupro_admin_first_month_offer', { p_business_id: input.businessId,
+        p_percent: input.percent, p_reason: input.reason }));
+    }
     if (route === 'admin/fiscal/upload' && method === 'POST') return uploadFiscalPdf(request, client);
     if (route === 'admin/fiscal/send' && method === 'POST') {
       const input = z.object({ paymentId: z.string().min(1).max(250) }).strict().parse(await readJson(request));

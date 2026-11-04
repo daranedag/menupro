@@ -2,6 +2,7 @@ name: MenuPro operational watchdog
 on:
   schedule:
     - cron: '7,22,37,52 * * * *'
+    - cron: '0 20,21 * * *'
   workflow_dispatch:
 permissions:
   contents: read
@@ -18,19 +19,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           persist-credentials: false
-      # State contains no credentials or customer data.
-      - uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25
-        with:
-          path: .menupro-operations-state.json
-          key: menupro-ops-v1-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: menupro-ops-v1-
-      - name: Check maintenance and send incident/recovery notices through Resend
+      - name: Check MenuPro operations
         env:
           MENUPRO_MONITOR_TOKEN: ${{ secrets.MENUPRO_MONITOR_TOKEN }}
-          MENUPRO_OPERATIONS_RESEND: ${{ secrets.MENUPRO_OPERATIONS_RESEND }}
         run: node scripts/operations-watchdog.mjs
-      - uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25
-        if: always() && hashFiles('.menupro-operations-state.json') != ''
-        with:
-          path: .menupro-operations-state.json
-          key: menupro-ops-v1-${{ github.run_id }}-${{ github.run_attempt }}

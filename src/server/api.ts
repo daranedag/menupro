@@ -122,8 +122,9 @@ export async function handleApi(request: Request, context: { params: Promise<{ p
     }
 
     if (path[0] === 'restaurants' && path.length <= 2) {
+      const context = await businessSession(client);
+      if (context.is_admin) throw new HttpError('Esta cuenta usa el panel de administración.', 403);
       if (method === 'GET') {
-        const context = await businessSession(client);
         const query = client.database.from('menupro_restaurants').select(restaurantColumns).eq('business_id', context.business_id);
         const result = path[1] ? await query.eq('id', z.string().uuid().parse(path[1])).maybeSingle() : await query.order('created_at').limit(100);
         check(result.error);
@@ -134,7 +135,6 @@ export async function handleApi(request: Request, context: { params: Promise<{ p
         const input = restaurantSchema.parse(await body(request));
         const slug = input.slug || slugify(input.name);
         if (!slug) throw new HttpError('Ingresa un nombre o slug válido.');
-        const context = await businessSession(client);
         const args = { p_business_id: context.business_id,
           p_name: input.name, p_slug: slug, p_phone: input.phone ?? '', p_address: input.address ?? '', p_city: input.city ?? '',
           p_unit: input.unit ?? '', p_no_physical_location: input.no_physical_location ?? false };

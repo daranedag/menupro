@@ -11,7 +11,7 @@ export function useMenu() {
 }
 export function MenuProvider({ children }) {
   const { user, isLoading: authLoading } = useAuth();
-  const restaurantId = user?.activeRestaurantId;
+  const restaurantId = user?.isAdmin ? null : user?.activeRestaurantId;
   const [menus, setMenus] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);

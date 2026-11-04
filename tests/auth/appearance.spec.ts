@@ -8,7 +8,7 @@ const restaurantTheme = {
   font: { name: 'Sistema', fontFamily: 'system-ui, -apple-system, sans-serif' },
 };
 
-async function panelSession(page: Page) {
+async function panelSession(page: Page, isAdmin = false) {
   // Establish an SSR session using the local fake provider, then supply deterministic UI data.
   await page.request.post('http://127.0.0.1:3101/__test/reset', { data: {} });
   const response = await page.request.post('/api/auth/google', { headers: { Origin: 'http://localhost:3100' } });
@@ -17,9 +17,10 @@ async function panelSession(page: Page) {
   await page.request.get(`/api/auth/callback?insforge_code=${code}`);
   let savedTheme = structuredClone(restaurantTheme);
   await page.route('**/api/**', async route => {
-    const path = new URL(route.request().url()).pathname;
+    const url = new URL(route.request().url());
+    const path = url.pathname;
     const user = {
-      name: 'Equipo MenuPro', email: 'owner@example.invalid', role: 'platform_admin', isAdmin: true,
+      name: 'Equipo MenuPro', email: 'owner@example.invalid', role: isAdmin ? 'platform_admin' : 'restaurant_owner', isAdmin,
       businessId: 'business', businessRole: 'owner', activeRestaurantId: 'restaurant', canEdit: true,
       businesses: [{ id: 'business', name: 'Mi negocio', role: 'owner' }],
       restaurants: [{ id: 'restaurant', name: 'Mi restaurante', theme: savedTheme }],
@@ -40,6 +41,12 @@ async function panelSession(page: Page) {
       '/api/admin/commercial': { grupo_enabled: false, annual_enabled: false },
       '/api/admin/operations': { incidents: [], alerts: [] },
       '/api/admin/fiscal': { documents: [], total: 0 },
+      '/api/admin/business-choices': [{ id: 'business', name: 'Café del Puerto' }],
+      '/api/admin/business-details': { business: { name: 'Café del Puerto', owner_email: 'owner@example.invalid' }, restaurants: [{ name: 'Local Bellavista' }] },
+      '/api/admin/records': { rows: url.searchParams.get('kind') === 'businesses' ? [{ id: 'business', name: 'Café del Puerto', plan_id: 'local' }] :
+        url.searchParams.get('actor') ? [{ id: 'event', event: 'welcome_terms_changed', actor_email: 'owner@example.invalid',
+          created_at: '2026-11-03T19:00:00Z', details: { reason: 'Acuerdo de lanzamiento' } }] : [], hasMore: false },
+      '/api/admin/first-month-offer': { payments: 1 },
     };
     if (path in fixtures) return route.fulfill({ json: { data: fixtures[path] } });
     return route.continue();
@@ -74,7 +81,7 @@ test('landing and login share the saved theme across navigation and reloads', as
   expect(errors).toEqual([]);
 });
 
-test('business, billing, admin and dashboard use themed surfaces and controls', async ({ page }) => {
+test('business, billing and dashboard use themed surfaces and controls', async ({ page }) => {
   await panelSession(page);
   await page.addInitScript(() => localStorage.setItem('theme', 'dark'));
   const errors: string[] = [];
@@ -92,7 +99,7 @@ test('business, billing, admin and dashboard use themed surfaces and controls', 
   finishLoading();
   for (const [label, heading] of [
     ['Mi negocio', 'Mi negocio y equipo'], ['Suscripción', 'Suscripción y pagos'],
-    ['Administración', 'Administración de MenuPro'], ['Inicio', 'Tu carta, al día.'],
+    ['Inicio', 'Tu carta, al día.'],
   ]) {
     await page.getByRole('navigation', { name: 'Navegación principal', exact: true }).getByRole('link', { name: label, exact: true }).click();
     await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
@@ -106,6 +113,45 @@ test('business, billing, admin and dashboard use themed surfaces and controls', 
   await page.getByRole('button', { name: 'Cambiar a modo claro', exact: true }).click();
   await expect.poll(() => background(page, 'header')).toBe('rgb(255, 255, 255)');
   expect(errors).toEqual([]);
+});
+
+test('the platform admin lands in the six administrative sections, including from merchant links', async ({ page }) => {
+  await panelSession(page, true);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(() => localStorage.setItem('theme', 'dark'));
+  await page.goto('/app/dashboard/images');
+  await expect(page).toHaveURL(/\/app\/dashboard\/admin$/);
+  const navigation = page.getByRole('navigation', { name: 'Navegación principal' });
+  await expect(navigation.getByRole('link')).toHaveText([
+    'Planes disponibles', 'Alertas operativas', 'Solicitudes', 'Transferencias y boletas', 'Negocios registrados', 'Logs',
+  ]);
+  await expect(page.getByRole('switch', { name: 'Habilitar plan Grupo' })).toBeVisible();
+  await navigation.getByRole('link', { name: 'Alertas operativas' }).click();
+  await expect(page.getByText(/17:00, hora de Santiago/)).toBeVisible();
+  await navigation.getByRole('link', { name: 'Solicitudes' }).click();
+  await page.getByLabel('Negocio del descuento').selectOption('business');
+  await page.getByLabel('Descuento (%)').fill('25');
+  await page.getByLabel('Motivo del descuento').fill('Acuerdo comercial de prueba');
+  const offer = page.waitForRequest(request => request.url().endsWith('/api/admin/first-month-offer'));
+  await page.getByRole('button', { name: 'Guardar descuento' }).click();
+  expect((await offer).postDataJSON()).toMatchObject({ businessId: 'business', percent: 25 });
+  await expect(page.getByRole('status').filter({ hasText: 'Descuento guardado' })).toBeVisible();
+  await navigation.getByRole('link', { name: 'Transferencias y boletas' }).click();
+  await expect(page.getByRole('heading', { name: 'Historial de transferencias' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Boletas de honorarios · emisión manual' })).toBeVisible();
+  await navigation.getByRole('link', { name: 'Negocios registrados' }).click();
+  await page.locator('summary').getByText('Café del Puerto').click();
+  await expect(page.getByText('Local Bellavista')).toBeVisible();
+  await navigation.getByRole('link', { name: 'Logs' }).click();
+  await page.getByLabel('Usuario').fill('owner@example.invalid');
+  await page.getByRole('button', { name: 'Filtrar' }).click();
+  await page.locator('summary').getByText('Descuento de bienvenida actualizado').click();
+  await expect(page.getByText('Acuerdo de lanzamiento')).toBeVisible();
+  await page.screenshot({ path: 'artifacts/ui/admin-logs.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('button', { name: 'Abrir menú' }).click();
+  await expect(navigation.getByRole('link')).toHaveCount(6);
 });
 
 test('restaurant palette and fonts stay local and saving preserves the restaurant mode', async ({ page }) => {

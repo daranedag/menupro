@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   if (!authorization) return Response.json({ error: 'No autorizado.' }, { status: 401 });
   try {
     if (authorization === 'external') await workerRpc('menupro_record_external_probe');
-    const result = await checkOperations();
+    const result = await checkOperations({ sendDigest: true });
     // A structured response distinguishes application incidents from an outage of
     // this endpoint, which the independent watchdog must report itself.
     return Response.json({ monitor: 'menupro-operations-v1', ...result }, { headers: { 'Cache-Control': 'no-store' } });

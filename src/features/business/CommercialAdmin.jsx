@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '@/api/client';
-export default function CommercialAdmin({ onChanged }) {
+export default function CommercialAdmin() {
   const [settings, setSettings] = useState(null); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [message, setMessage] = useState('');
   useEffect(() => { let current = true; api.get('/api/admin/commercial').then(result => { if (current) setSettings(result.data); }).catch(failure => { if (current) setError(failure.message); }); return () => { current = false; }; }, []);
   async function toggle(key, checked) {
@@ -9,7 +9,7 @@ export default function CommercialAdmin({ onChanged }) {
     const next = { grupo_enabled: settings.grupo_enabled, annual_enabled: settings.annual_enabled, [key]: checked };
     setSettings(next);
     setBusy(true); setError(''); setMessage('');
-    try { const result = await api.post('/api/admin/commercial', next); setSettings(result.data); setMessage('Disponibilidad actualizada en la landing y en las nuevas contrataciones.'); await onChanged?.(); }
+    try { const result = await api.post('/api/admin/commercial', next); setSettings(result.data); setMessage('Disponibilidad actualizada en la landing y en las nuevas contrataciones.'); }
     catch (failure) { setSettings(previous); setError(failure.message); } finally { setBusy(false); }
   }
   return <section className="rounded-xl border bg-surface p-5"><h2 className="text-xl font-semibold">Planes disponibles para contratar</h2>

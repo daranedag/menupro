@@ -28,9 +28,9 @@ El panel distingue aceptación, entrega al servidor de correo, demora, rechazo y
 - Problemas de envío de boletas y notificaciones de demora, rechazo o reclamo.
 - Ausencia de la vigilancia externa por 150 minutos.
 
-Los incidentes y sus recuperaciones generan avisos por Resend al correo administrador configurado; no se crea un aviso nuevo en cada comprobación de un incidente abierto. La bandeja de administración muestra estado, historial y última ejecución.
+Cada apertura y recuperación queda en **Alertas operativas**, junto al detalle del incidente y el estado de los resúmenes. Resend envía un resumen diario con corte a las 17:00 de Santiago, también en días sin cambios. El destino predeterminado es la cuenta administradora y se puede cambiar con `RESEND_ADMIN_EMAIL`.
 
-El mantenimiento horario conserva su trabajo en InsForge. Un monitor en GitHub Actions comprueba la aplicación aproximadamente cada 15 minutos y puede avisar por Resend aunque la aplicación o el backend fallen. Solo recibe un token de comprobación y una credencial de envío restringida al dominio; no recibe el secreto financiero ni claves administrativas del backend. Las acciones están fijadas a revisiones específicas y solo se ejecutan en `main`. Su caché contiene únicamente el estado de incidentes, sin datos de clientes ni secretos.
+El mantenimiento horario corre en InsForge. GitHub Actions comprueba la aplicación aproximadamente cada 15 minutos con un token de comprobación y registra el resultado en el historial del workflow. Si el servicio se interrumpe a la hora del envío, las siguientes comprobaciones del día reintentan el resumen. Los cambios pendientes se incluyen en el próximo resumen disponible. La reserva por fecha evita envíos duplicados cuando coinciden ambos procesos.
 
 GitHub puede retrasar horarios y suspende los horarios de repositorios públicos sin actividad durante 60 días. El mantenimiento vigila la fecha de la última comprobación externa para advertir si esto ocurre. No se ofrece un plazo garantizado de detección.
 
@@ -44,7 +44,7 @@ pnpm db:migrate
 pnpm run build
 ```
 
-Publicar el código en el proyecto existente de Vercel. Mantener `MENUPRO_BILLING_MODE=disabled` hasta la activación productiva autorizada. Desplegar el mantenimiento con `scripts/configure-business-worker.mjs`. Configurar los dos secretos cifrados del monitor mediante `scripts/configure-operations-watchdog.mjs --dispatch`, usando la autenticación del repositorio; sus valores nunca se imprimen.
+Publicar el código en el proyecto existente de Vercel. Mantener `MENUPRO_BILLING_MODE=disabled` hasta la activación productiva autorizada. Desplegar el mantenimiento con `scripts/configure-business-worker.mjs`. Configurar el token cifrado del monitor con `scripts/configure-operations-watchdog.mjs --dispatch` usando la autenticación del repositorio.
 
 En Resend, registrar `https://www.menupro.cl/api/emails/resend/webhook` para `email.sent`, `email.delivered`, `email.delivery_delayed`, `email.bounced`, `email.complained`, `email.failed` y `email.suppressed`. Guardar su firma exclusivamente como `RESEND_WEBHOOK_SECRET` en Vercel y en la configuración local ignorada.
 

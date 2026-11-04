@@ -72,7 +72,7 @@ test('administrator uploads a private PDF, sends it once with Resend and records
     const multipart={paymentId,folio,issuedDate:date,pdf:{name:'boleta.pdf',mimeType:'application/pdf',buffer:bytes}};
     expect((await owner.context.post('/api/admin/fiscal/upload',{multipart})).status()).toBe(403);
     const invalid=await admin.context.post('/api/admin/fiscal/upload',{multipart:{...multipart,pdf:{name:'boleta.pdf',mimeType:'application/pdf',buffer:Buffer.from('not-a-real-pdf')}}}); expect(invalid.status()).toBe(400);
-    await page.goto('/app/dashboard/admin'); const card=page.locator('article').filter({hasText:paymentId}); await expect(card).toBeVisible();
+    await page.goto('/app/dashboard/admin/transferencias'); const card=page.locator('article').filter({hasText:paymentId}); await expect(card).toBeVisible();
     await card.getByLabel('Folio emitido en el SII').fill(folio); await card.getByLabel('Fecha de emisión').fill(date);
     await card.getByLabel('PDF de la boleta '+paymentId,{exact:true}).setInputFiles({name:'boleta.pdf',mimeType:'application/pdf',buffer:bytes});
     const uploadResponse=page.waitForResponse(response=>response.url().endsWith('/api/admin/fiscal/upload')&&response.request().method()==='POST');

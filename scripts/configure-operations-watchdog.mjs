@@ -1,5 +1,5 @@
 // Auth uses the repository's existing credential helper. Never log its output.
-// GitHub receives only a monitor-scoped token and the MenuPro sending credential.
+// GitHub receives only a monitor-scoped token.
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { createHmac } from 'node:crypto';
@@ -16,7 +16,7 @@ const credentials = git(['-c','credential.interactive=never','credential','fill'
 const token = credentials.match(/^password=(.+)$/m)?.[1];
 if (!token) throw Error('No hay una credencial de GitHub disponible.');
 async function api(path, method = 'GET', body) {
-  if (!path.startsWith(`/repos/${repo}/`) && path !== `/repos/${repo}` && !/^\/repos\/actions\/(checkout|cache)\/git\/ref\/tags\/v[56]$/.test(path)) throw Error('Destino no permitido.');
+  if (!path.startsWith(`/repos/${repo}/`) && path !== `/repos/${repo}` && path !== '/repos/actions/checkout/git/ref/tags/v6') throw Error('Destino no permitido.');
   const response = await fetch('https://api.github.com' + path, { method, redirect: 'error',
     headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2026-03-10', 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(20000) });
@@ -27,19 +27,15 @@ const metadata = await api(`/repos/${repo}`);
 const publicKey = await api(`/repos/${repo}/actions/secrets/public-key`);
 if (process.argv.includes('--inspect')) {
   const checkout = await api('/repos/actions/checkout/git/ref/tags/v6');
-  const cache = await api('/repos/actions/cache/git/ref/tags/v5');
-  console.log(JSON.stringify({ repository: metadata.full_name, private: metadata.private, canConfigureSecrets: Boolean(publicKey.key_id), checkoutSha: checkout.object.sha, cacheSha: cache.object.sha }));
+  console.log(JSON.stringify({ repository: metadata.full_name, private: metadata.private, canConfigureSecrets: Boolean(publicKey.key_id), checkoutSha: checkout.object.sha }));
 } else {
   const project = JSON.parse(readFileSync('.insforge/project.json','utf8'));
   if (project.project_id !== '1f6ed00c-76be-4883-92e6-ca3dabee7e68') throw Error('Configura el monitor después de volver al proyecto principal.');
   const env = Object.fromEntries(readFileSync('.env.local','utf8').split(/\r?\n/).filter(line => /^[A-Z_]+=/.test(line)).map(line => { const i = line.indexOf('='); return [line.slice(0,i),line.slice(i+1)]; }));
-  if (env.NEXT_PUBLIC_INSFORGE_URL !== project.oss_host || env.MENUPRO_WORKER_SECRET?.length < 40 || !env.RESEND_API_KEY?.startsWith('re_')) throw Error('Configuración principal incompleta.');
-  const to = env.RESEND_ADMIN_EMAIL || env.RESEND_REPLY_TO;
-  if (!env.RESEND_FROM || !to) throw Error('Falta el remitente o el correo administrador.');
+  if (env.NEXT_PUBLIC_INSFORGE_URL !== project.oss_host || env.MENUPRO_WORKER_SECRET?.length < 40) throw Error('Configuración principal incompleta.');
   await sodium.ready;
   const secrets = {
     MENUPRO_MONITOR_TOKEN: createHmac('sha256',env.MENUPRO_WORKER_SECRET).update('menupro/operations-monitor/v1').digest('hex'),
-    MENUPRO_OPERATIONS_RESEND: JSON.stringify({ enabled: true, apiKey: env.RESEND_API_KEY, from: env.RESEND_FROM, replyTo: env.RESEND_REPLY_TO, to }),
   };
   for (const [name,value] of Object.entries(secrets)) {
     const encrypted = sodium.crypto_box_seal(Buffer.from(value),Buffer.from(publicKey.key,'base64'));

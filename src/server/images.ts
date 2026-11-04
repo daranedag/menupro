@@ -16,6 +16,7 @@ function invalid(error: unknown): never { throw new HttpError(error instanceof E
 export async function handleImagesApi(request: Request, path: string[], client: BusinessClient) {
   if (path[0] !== 'images') return null;
   const context = await businessSession(client);
+  if (context.is_admin) throw new HttpError('Esta cuenta usa el panel de administración.', 403);
   const paid = await client.database.rpc('menupro_has_paid_images', { p_business_id: context.business_id });
   check(paid.error);
   const eligible = paid.data === true;

@@ -14,8 +14,8 @@ function DashboardLayout({ children }) {
     <div className="dashboard-shell min-h-screen bg-canvas text-ink">
       <Header isPublic={false} />
       <div className="dashboard-body">
-      <div className="dashboard-topbar"><div><p>{user?.activeRestaurantName || user?.restaurantName || 'Tu espacio de trabajo'}</p><span>La carta de tu local, en tus manos.</span></div><ThemeToggle /></div>
-      <SubscriptionBanner />
+      <div className="dashboard-topbar"><div>{user?.isAdmin ? <p>Administración de MenuPro</p> : <><p>{user?.activeRestaurantName || user?.restaurantName || 'Tu espacio de trabajo'}</p><span>La carta de tu local, en tus manos.</span></>}</div><ThemeToggle /></div>
+      {!user?.isAdmin && <SubscriptionBanner />}
       
       {/* Main Content */}
       <main className="dashboard-main">
