@@ -151,12 +151,26 @@ export async function handleBusinessApi(request: Request, path: string[], client
       const status = z.enum(['all', 'review', 'granted', 'denied']).parse(params.get('status') ?? 'all');
       const rows = await rpc(client, 'menupro_admin_records', { p_kind: kind, p_offset: offset,
         p_from: from, p_to: to, p_actor: actor, p_event: event, p_status: status });
+      if (kind === 'businesses' && rows.length) {
+        const subscriptions = await client.database.from('menupro_subscriptions')
+          .select('business_id,plan_id,status,billing_cycle,provider_subscription_id,provider_status,cancel_at_period_end,trial_ends_at,current_period_end')
+          .in('business_id', rows.map((row: { id: string }) => row.id));
+        check(subscriptions.error);
+        const byBusiness = new Map(subscriptions.data?.map(subscription => [subscription.business_id, subscription]));
+        for (const row of rows) row.subscription = byBusiness.get(row.id) ?? null;
+      }
       return respond({ rows: rows.slice(0, 50), hasMore: rows.length > 50 });
     }
     if (route === 'admin/business-details' && method === 'GET') {
       const id = uuid.parse(new URL(request.url).searchParams.get('id'));
       const details = await rpc(client, 'menupro_admin_business_details', { p_business_id: id });
       if (!details) throw new HttpError('Negocio no encontrado.', 404);
+      if (details.subscription?.provider_subscription_id) {
+        const checkout = await client.database.from('menupro_checkout_requests')
+          .select('id,plan_id,cycle,purpose,status,starts_at,gross_amount,provider_id')
+          .eq('business_id', id).eq('provider_id', details.subscription.provider_subscription_id).maybeSingle();
+        check(checkout.error); details.subscriptionCheckout = checkout.data;
+      }
       return respond(details);
     }
     if (route === 'admin/business-choices' && method === 'GET') {

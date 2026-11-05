@@ -28,6 +28,7 @@
     "@insforge/sdk": "1.5.2",
     "axios": "^1.13.2",
     "clsx": "^2.1.1",
+    "driver.js": "^1.10.2",
     "html2canvas": "^1.4.1",
     "i18next": "^25.7.3",
     "jspdf": "^3.0.4",

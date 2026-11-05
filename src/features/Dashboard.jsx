@@ -8,6 +8,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { Card, Spinner, Input, Button, Badge } from '../components/ui';
 import { BookOpen, FolderOpen, UtensilsCrossed, Plus, List, Eye } from 'lucide-react';
 import TrialOnboarding from '@/components/business/TrialOnboarding';
+import GuidedTour from '@/components/dashboard/GuidedTour';
 
 function DashboardHome() {
   const { menus, isLoading, error } = useMenu();
@@ -100,11 +101,19 @@ function DashboardHome() {
           </Card>
         )}
 
-        <div className="dashboard-summary">
+        <GuidedTour scope="home" ready={!isLoading && !error} />
+        <div data-tour="tour-welcome" className="dashboard-summary">
           <div><span><BookOpen size={18} />Cartas creadas</span><strong>{menus.length}</strong></div>
           <div><span><FolderOpen size={18} />Secciones</span><strong>{totalSections}</strong></div>
           <div><span><UtensilsCrossed size={18} />Platos en carta</span><strong>{totalDishes}</strong></div>
         </div>
+
+        {user?.canEdit && <div className="mb-6 grid gap-3 sm:grid-cols-2" aria-label="Primeros pasos">
+          <Link data-tour="tour-menu" href={menus[0] ? `/app/dashboard/menus/${menus[0].id}` : '/app/dashboard/menus/new'} className="rounded-xl border border-line bg-surface p-4 text-brand font-semibold">{menus[0] ? 'Editar mi carta' : 'Crear mi primera carta'}<span className="mt-1 block text-sm font-normal text-muted">Organiza secciones, platos y precios.</span></Link>
+          <Link data-tour="tour-appearance" href="/app/dashboard/settings" className="rounded-xl border border-line bg-surface p-4 text-brand font-semibold">Personalizar apariencia<span className="mt-1 block text-sm font-normal text-muted">Elige colores y tipografía.</span></Link>
+          <Link data-tour="tour-publish" href="/app/dashboard/menus" className="rounded-xl border border-line bg-surface p-4 text-brand font-semibold">Publicar mi carta<span className="mt-1 block text-sm font-normal text-muted">Revisa y publica desde Mis cartas.</span></Link>
+          <Link data-tour="tour-subscription" href="/app/dashboard/billing" className="rounded-xl border border-line bg-surface p-4 text-brand font-semibold">Consultar mi suscripción<span className="mt-1 block text-sm font-normal text-muted">Revisa tu acceso y las opciones para continuar.</span></Link>
+        </div>}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card title="Tu próximo paso" subtitle="Lo esencial para poner tu carta en marcha">

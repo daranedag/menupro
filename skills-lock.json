@@ -13,6 +13,18 @@
       "skillPath": "skills/productivity/grill-me/SKILL.md",
       "computedHash": "5e0c683385eafd83f106ac6c9d67dfbbfe5aa4b3fe65aad114eb1055a99c818f"
     },
+    "short-form-video-script": {
+      "source": "social-media-skills/skills",
+      "sourceType": "github",
+      "skillPath": "skills/short-form-video-script/SKILL.md",
+      "computedHash": "c5a4b94147ef83a2046d7c257da4d36d210cb7db643a279a4038c278deefdea3"
+    },
+    "social": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/social/SKILL.md",
+      "computedHash": "6ac8e1f9252f22ac1a8641d0b3c3ccb6fd035d39162a59ad4c6b22451ce2c984"
+    },
     "web-design-guidelines": {
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",

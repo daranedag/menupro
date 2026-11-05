@@ -8,6 +8,8 @@ export async function deliverQueuedNotifications({ rpc, config, appUrl, fetchEma
   const local = allowLocalhost && origin.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(origin.hostname);
   if (origin.protocol !== 'https:' && !local) throw new Error('El envío automático necesita una dirección pública HTTPS.');
   const link = new URL('/app/dashboard/billing', origin).href;
+  const manualLink = new URL('/manuales/menupro-guia-rapida.pdf', origin).href;
+  const dashboardLink = new URL('/app/dashboard', origin).href;
   const notices = await rpc('menupro_claim_notifications');
   const started = now();
   let emailed = 0; let emailFailures = 0; let deferred = 0;
@@ -17,8 +19,8 @@ export async function deliverQueuedNotifications({ rpc, config, appUrl, fetchEma
     const result = await sendResendEmail({ to: notice.email, subject: notice.subject,
       idempotencyKey: `menupro-notification/${notice.id}`,
       tags: [{ name: 'menupro_notification', value: notice.id }],
-      html: `<div lang="es" style="font-family:Arial,sans-serif;color:#0f172a;max-width:560px;margin:auto;padding:32px"><h1 style="font-size:24px">${emailEscape(notice.subject)}</h1><p>${emailEscape(notice.message)}</p><p><a href="${emailEscape(link)}">Revisar mi cuenta en MenuPro</a></p><p>Este aviso corresponde a tu cuenta de MenuPro.</p></div>`,
-      text: `${notice.subject}\n\n${notice.message}\n\nRevisa tu cuenta: ${link}`,
+      html: `<div lang="es" style="font-family:Arial,sans-serif;color:#0f172a;max-width:560px;margin:auto;padding:32px"><h1 style="font-size:24px">${emailEscape(notice.subject)}</h1><p>${emailEscape(notice.message)}</p><p><a href="${emailEscape(link)}">Revisar mi cuenta en MenuPro</a></p><h2 style="font-size:18px">Tu ayuda para comenzar</h2><p><a href="${emailEscape(manualLink)}">Descargar el manual de usuario (PDF)</a></p><p>En <a href="${emailEscape(dashboardLink)}">Inicio del panel</a> también puedes abrir el recorrido guiado.</p><p>Este aviso corresponde a tu cuenta de MenuPro.</p></div>`,
+      text: `${notice.subject}\n\n${notice.message}\n\nRevisa tu cuenta: ${link}\n\nManual de usuario (PDF): ${manualLink}\nRecorrido guiado desde Inicio: ${dashboardLink}`,
     }, config, fetchEmail);
     // If this acknowledgement fails, keep the lease. The next run reuses the same
     // Resend idempotency key instead of claiming that the accepted message failed.

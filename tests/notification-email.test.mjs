@@ -33,11 +33,29 @@ test('leased reminders use Resend, stable idempotency, escaped content and the c
     assert.deepEqual(mail.to, [notice.email]); assert.equal(mail.reply_to, config.replyTo);
     assert.match(mail.html, /Tu demo &lt;termina&gt;/); assert.match(mail.html, /carta &amp; QR/);
     assert.match(mail.text, /https:\/\/menupro.example.invalid\/app\/dashboard\/billing/);
+    assert.match(mail.html, /https:\/\/menupro.example.invalid\/manuales\/menupro-guia-rapida.pdf/);
+    assert.match(mail.text, /Manual de usuario \(PDF\): https:\/\/menupro.example.invalid\/manuales\/menupro-guia-rapida.pdf/);
     assert.doesNotMatch(mail.html, /test-only/);
     return Response.json({ id: 'resend-1' });
   } });
   assert.equal(result.emailed, 1); assert.equal(result.emailFailures, 0);
   assert.deepEqual(q.completed, [{ p_notification_id: notice.id, p_token: notice.token, p_sent: true, p_email_id: 'resend-1' }]);
+});
+
+test('the trial activation notice includes the user manual and guided-tour entry without another email', async () => {
+  const q = queue([{ ...notice, subject: 'Tu demo de 15 días comenzó', message: 'Edita la carta de ejemplo y publica tu QR.' }]);
+  let sends = 0;
+  const result = await deliverQueuedNotifications({ rpc: q.rpc, config, appUrl, fetchEmail: async (_url, options) => {
+    sends++;
+    const mail = JSON.parse(options.body);
+    assert.equal(mail.subject, 'Tu demo de 15 días comenzó');
+    assert.match(mail.html, /Descargar el manual de usuario \(PDF\)/);
+    assert.match(mail.text, /Recorrido guiado desde Inicio: https:\/\/menupro.example.invalid\/app\/dashboard/);
+    return Response.json({ id: 'welcome-with-manual' });
+  } });
+  assert.equal(sends, 1);
+  assert.equal(result.emailed, 1);
+  assert.equal(q.completed[0].p_email_id, 'welcome-with-manual');
 });
 
 test('rate limiting releases the failed notice, leaves remaining leases for retry and does not mark anything sent', async () => {

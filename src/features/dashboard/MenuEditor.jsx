@@ -28,6 +28,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { formatPrice } from '@/lib/format-price';
+import GuidedTour from '@/components/dashboard/GuidedTour';
 
 // Componente para Sección Sortable
 function SortableSection({ section, menuId, onDeleteSection, onToggleSection, onDeleteDish }) {
@@ -107,7 +108,7 @@ function SortableSection({ section, menuId, onDeleteSection, onToggleSection, on
       </div>
 
       {/* Dishes */}
-      <div className="p-6">
+      <div data-tour="tour-dishes" className="p-6">
         {section.items && section.items.length > 0 ? (
           <DishList
             dishes={section.items}
@@ -370,7 +371,7 @@ function MenuEditor() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <Link href="/app/dashboard/menus" className="text-brand hover:text-brand text-sm mb-2 inline-block">
+            <Link data-tour="tour-back" href="/app/dashboard/menus" className="text-brand hover:text-brand text-sm mb-2 inline-block">
               ← Volver a Cartas
             </Link>
             <div className="flex items-center gap-3">
@@ -386,20 +387,21 @@ function MenuEditor() {
         </div>
 
         {/* Actions */}
+        <GuidedTour scope="editor" />
         <div className="flex flex-wrap gap-3 mb-6">
-          <Link href={`/app/dashboard/menus/${menuId}/sections/new`}>
+          <Link data-tour="tour-sections" href={`/app/dashboard/menus/${menuId}/sections/new`}>
             <Button variant="primary">
               <Plus size={18} className="inline mr-2" />
               Nueva Sección
             </Button>
           </Link>
-          <Button variant="outline" onClick={() => setShowPreview(true)}>
+          <Button data-tour="tour-preview" variant="outline" onClick={() => setShowPreview(true)}>
             <Eye size={18} className="inline mr-2" />
             Vista Previa
           </Button>
           <MobilePreview menuId={menuId} />
-          <PDFGenerator menu={menu} />
-          <QRGenerator menuId={menuId} menuName={menu.name} />
+          <div data-tour="tour-share" className="flex flex-wrap gap-3"><PDFGenerator menu={menu} />
+          <QRGenerator menuId={menuId} menuName={menu.name} /></div>
           <Link href={`/app/dashboard/menus/${menuId}/edit`}>
             <Button variant="outline">
               <Edit size={18} className="inline mr-2" />

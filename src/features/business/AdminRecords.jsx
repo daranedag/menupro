@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/api/client';
 import { Button, Input } from '@/components/ui';
+import SubscriptionSummary from '@/components/business/SubscriptionSummary';
+import { subscriptionDisplay } from '@/lib/subscription-display.mjs';
 
 const chileDate = new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Santiago' });
 export const adminDate = value => value ? chileDate.format(new Date(value)) : 'Sin registro';
@@ -13,9 +15,11 @@ const fields = {
   id: 'Identificador', name: 'Nombre', email: 'Correo', owner_email: 'Correo del propietario', owner_name: 'Propietario',
   owner_verified: 'Correo verificado', owner_id: 'ID del propietario', created_by: 'Creado por', created_at: 'Fecha de registro',
   updated_at: 'Última actualización', business_id: 'ID del negocio', status: 'Estado', plan_id: 'Plan',
+  plan_name: 'Nombre del plan', effective_status: 'Acceso actual', has_access: 'Acceso vigente',
   trial_started_at: 'Inicio de demo', trial_ends_at: 'Fin de demo', courtesy_until: 'Cortesía hasta',
   current_period_start: 'Inicio del período pagado', current_period_end: 'Fin del período pagado',
   billing_cycle: 'Modalidad', cancel_at_period_end: 'Renovación cancelada', first_month_offer: 'Oferta para el primer mes',
+  provider_subscription_id: 'Suscripción en Mercado Pago', provider_status: 'Estado en Mercado Pago',
   monthly_welcome_percent: 'Descuento mensual (%)', monthly_welcome_payments: 'Mensualidades con descuento',
   legal_name: 'Nombre o razón social', address: 'Dirección', commune: 'Comuna', city: 'Ciudad', phone: 'Teléfono',
   menu_count: 'Cartas registradas', no_physical_location: 'Sin local físico', archived_at: 'Archivado el',
@@ -29,7 +33,8 @@ function fieldValue(key, value) {
   if (typeof value === 'boolean') return value ? 'Sí' : 'No';
   if (typeof value === 'object') return <pre className="whitespace-pre-wrap break-all text-xs">{JSON.stringify(value, null, 2)}</pre>;
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value) && Number.isFinite(Date.parse(value))) return adminDate(value);
-  if (key === 'status') return states[value] || value;
+  if (key === 'status' || key === 'effective_status') return states[value] || value;
+  if (key === 'provider_status') return ({ authorized: 'Autorizada', pending: 'Autorización pendiente', cancelled: 'Cancelada', paused: 'Pausada' })[value] || value;
   if (key === 'plan_id') return plan[value] || value;
   if (key === 'billing_cycle') return cycle[value] || value;
   return value;
@@ -100,6 +105,7 @@ function BusinessDetails({ id }) {
   if (result.error) return <><p role="alert">{result.error}</p><Button onClick={() => { setResult(null); setRetry(value => value + 1); }}>Reintentar</Button></>;
   const { business, subscription, billing, restaurants, members, invitations, demo_requests, recent_payments } = result.data;
   return <>
+    <SubscriptionSummary subscription={subscription} checkout={result.data.subscriptionCheckout} />
     <AdminFields values={business} />
     {[['Suscripción y acceso', subscription], ['Datos para la boleta', billing], ['Locales', restaurants],
       ['Equipo', members], ['Invitaciones', invitations], ['Últimas solicitudes de demo', demo_requests], ['Últimos pagos', recent_payments]]
@@ -117,10 +123,12 @@ function BusinessDetails({ id }) {
 
 function BusinessRow({ business }) {
   const [opened, setOpened] = useState(false);
+  const view = subscriptionDisplay(business.subscription);
   return <details className="py-4" onToggle={event => setOpened(event.currentTarget.open)}>
     <summary className="cursor-pointer rounded p-1">
       <strong>{business.name}</strong>
       <span className="ml-2 text-sm text-muted">{business.owner_email || 'Invitación pendiente'} · {plan[business.plan_id] || 'Sin plan'} · {business.has_access ? 'Acceso vigente' : states[business.status] || 'Sin acceso'}</span>
+      {business.subscription && <span className="mt-1 block text-sm">{view.title}{view.awaitingFirstPayment ? ' · Primer cobro por confirmar' : ''} · {states[business.status] || business.status}</span>}
     </summary>
     {opened && <div className="mt-3 space-y-4 rounded-lg bg-canvas p-4"><BusinessDetails id={business.id} /></div>}
   </details>;

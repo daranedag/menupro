@@ -73,16 +73,19 @@ async function userRpc(client: BusinessClient, name: string, args: Record<string
 export async function handleBillingApi(request: Request, path: string[], client: BusinessClient, user: { id: string; email?: string }, context: BusinessContext) {
   const route = path.join('/');
   if (route === 'billing' && request.method === 'GET') {
-    const [plans, payments, checkouts, profile, documents] = await Promise.all([
+    const [plans, payments, checkouts, profile, documents, subscriptionCheckout] = await Promise.all([
       client.database.from('menupro_plans').select('*').order('monthly_net'),
       context.business_role === 'owner' ? client.database.from('menupro_payment_events').select('*').eq('business_id', context.business_id).order('created_at', { ascending: false }).limit(100) : Promise.resolve({ data: [], error: null }),
       context.business_role === 'owner' ? client.database.from('menupro_checkout_requests').select('id,plan_id,cycle,purpose,status,starts_at,gross_amount,checkout_url,provider_id,created_at').eq('business_id', context.business_id).order('created_at', { ascending: false }).limit(10) : Promise.resolve({ data: [], error: null }),
       client.database.from('menupro_billing_profiles').select('*').eq('business_id', context.business_id).maybeSingle(),
       client.database.from('menupro_fiscal_documents').select('*').eq('business_id', context.business_id).order('created_at', { ascending: false }).limit(100),
+      context.business_role === 'owner' && context.subscription.provider_subscription_id ? client.database.from('menupro_checkout_requests')
+        .select('id,plan_id,cycle,purpose,status,starts_at,gross_amount,provider_id').eq('business_id', context.business_id)
+        .eq('provider_id', context.subscription.provider_subscription_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
     ]);
-    [plans, payments, checkouts, profile, documents].forEach(result => check(result.error));
+    [plans, payments, checkouts, profile, documents, subscriptionCheckout].forEach(result => check(result.error));
     return respond({ subscription: context.subscription, plans: plans.data, payments: payments.data, checkouts: checkouts.data,
-      profile: profile.data, documents: documents.data, availability: await commercialSettings(), configuration: await checkedPaymentReadiness() });
+      subscriptionCheckout: subscriptionCheckout.data, profile: profile.data, documents: documents.data, availability: await commercialSettings(), configuration: await checkedPaymentReadiness() });
   }
   if (context.business_role !== 'owner') throw new HttpError('Solo el propietario puede gestionar los pagos.', 403);
   if (path[1] === 'document' && path.length === 3 && request.method === 'GET') {
@@ -169,6 +172,11 @@ export async function handleBillingApi(request: Request, path: string[], client:
     if (!data) throw new HttpError('No hay una contratación para revisar.', 404);
     const result = await runPaymentRecovery(requestId);
     if (result.failures) throw new HttpError('No pudimos conciliar todos los cobros. Se reintentará automáticamente.', 503);
+    const refreshed = await client.database.from('menupro_checkout_requests').select('status,starts_at').eq('id', requestId).eq('business_id', context.business_id).single(); check(refreshed.error);
+    if (!refreshed.data) throw new HttpError('No hay una contratación para revisar.', 404);
+    if (refreshed.data.status === 'authorized') return respond({ message: 'Suscripción autorizada. Primer cobro previsto para el ' +
+      new Date(refreshed.data.starts_at).toLocaleDateString('es-CL', { timeZone: 'America/Santiago' }) + '. El primer cobro aún no está confirmado; el período pagado se activa cuando Mercado Pago lo aprueba.' });
+    if (refreshed.data.status === 'paid') return respond({ message: 'La contratación tiene un pago confirmado. Revisa el período de acceso y el historial de pagos.' });
     return respond({ message: result.checked ? 'Estado consultado. El acceso pagado se activa cuando Mercado Pago confirma el cobro.' : 'La contratación se revisó recientemente o sigue en proceso. Se volverá a consultar automáticamente.' });
   }
   if (route === 'billing/abandon' && request.method === 'POST') {

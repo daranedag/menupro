@@ -41,6 +41,10 @@ Mantener el modo `disabled` hasta completar la firma, el despliegue y el entorno
 
 ## Comprobación de conexión
 
+Validación del 5 de noviembre de 2026: la API productiva devolvió `authorized` para la suscripción de validación Local mensual, con importe de $999 y primer cobro previsto para el 17 de noviembre. No había pagos registrados ni fecha de último cargo en el resumen del proveedor. La autorización respeta los días restantes de demo; el correo de adhesión no acredita un débito.
+
+La pantalla de Suscripción y el directorio administrativo distinguen el acuerdo autorizado del acceso por demo o período pagado. Una contratación `authorized` aparece en el resumen de la suscripción y deja de ofrecer un enlace para continuar el checkout. Solo `pending` y `ready` se muestran como contrataciones pendientes. El período pagado y las boletas siguen dependiendo del cobro aprobado y verificado; no se adelantan al autorizar ni al vencer la demo.
+
 Validación productiva del 3 de noviembre de 2026: crear una suscripción pendiente por $500 respondió HTTP 400 con `Cannot pay an amount lower than $ 950.00`. La consulta por referencia no encontró una suscripción creada. El titular autorizó sustituir la oferta individual de 95% por 90% solo en la primera mensualidad ($999 brutos), conservando el resto de condiciones y el término de la demo. La solicitud fallida conserva sus importes originales y debe anularse antes de reservar una nueva; no se modifica el precio de un checkout existente. El BFF traduce este rechazo conocido a HTTP 422 con el mínimo informado y registra únicamente diagnóstico seguro, sin credenciales ni datos del pagador.
 
 Ejecutar `pnpm payments:check` desde este repositorio. Solo consulta la API de suscripciones y muestra el estado HTTP, sin imprimir tokens, datos del pagador ni registros del proveedor. No crea ni autoriza cobros. Un resultado correcto no acredita todavía la firma del webhook ni el pago completo.
