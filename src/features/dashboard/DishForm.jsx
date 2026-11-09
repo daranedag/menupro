@@ -10,6 +10,8 @@ import DishTag, { dishTagColors } from '@/components/menu/DishTag';
 import { Check, X } from 'lucide-react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { ImagePicker } from './ImageLibrary';
+import DishStatusSelect from '@/components/dashboard/DishStatusSelect';
+import { dishStatusFields, getDishStatus } from '@/lib/menu.mjs';
 
 function DishForm() {
   const { menuId, sectionId, dishId } = useParams();
@@ -39,6 +41,8 @@ function DishForm() {
     isVegetarian: existingDish?.isVegetarian || false,
     isSpicy: existingDish?.isSpicy || false,
     tags: existingDish?.tags || [],
+    isActive: existingDish?.isActive !== false,
+    isVisible: existingDish?.isVisible !== false,
   });
 
   const [newTag, setNewTag] = useState({ label: '', variant: 'default' });
@@ -115,6 +119,12 @@ function DishForm() {
 
         <Card>
           <form onSubmit={handleSubmit} className="space-y-6">
+            <section aria-labelledby="dish-status-heading" className="space-y-2">
+              <h3 id="dish-status-heading" className="text-base font-semibold text-ink">Estado del plato</h3>
+              <DishStatusSelect value={getDishStatus(formData)} disabled={saving}
+                onChange={status => setFormData(previous => ({ ...previous, ...dishStatusFields(status) }))} />
+              <p className="text-sm text-muted">Disponible: se muestra normalmente. No disponible: aparece atenuado y con un aviso. Oculto: no aparece en el menú.</p>
+            </section>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
                 label="Nombre del Plato"

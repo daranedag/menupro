@@ -7,6 +7,22 @@ export function menuPath(restaurantSlug, menuSlug) {
   return `/menu/${encodeURIComponent(restaurantSlug)}/${encodeURIComponent(menuSlug)}`;
 }
 
+export function getDishStatus(dish) {
+  if (dish.isVisible === false) return 'hidden';
+  return dish.isActive === false ? 'unavailable' : 'available';
+}
+
+export function dishStatusFields(status) {
+  return { isActive: status !== 'unavailable', isVisible: status !== 'hidden' };
+}
+
+// Availability changes presentation; only visibility removes a dish from the menu.
+export function getVisibleMenu(menu) {
+  return { ...menu, sections: (menu.sections ?? [])
+    .filter(section => section.isActive !== false && section.isVisible !== false)
+    .map(section => ({ ...section, items: (section.items ?? []).filter(item => item.isVisible !== false) })) };
+}
+
 export function toDish(row) {
   return { ...row, price: Number(row.price), discount: Number(row.discount ?? 0), image: row.image_url, imageAssetId: row.image_asset_id,
     longDescription: row.long_description, prepTime: row.prep_time, isVegetarian: row.is_vegetarian,

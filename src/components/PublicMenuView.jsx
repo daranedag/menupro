@@ -3,8 +3,10 @@ import Link from 'next/link';
 import { MapPin, UtensilsCrossed } from 'lucide-react';
 import MenuSection from './menu/MenuSection';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { getVisibleMenu } from '@/lib/menu.mjs';
 
 export default function PublicMenuView({ restaurant, menu }) {
+  menu = getVisibleMenu(menu);
   const theme = restaurant.theme;
   const dark = theme?.mode === 'dark';
   const style = {

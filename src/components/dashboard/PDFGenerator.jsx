@@ -5,6 +5,7 @@ import { FileDown } from 'lucide-react';
 import { useState } from 'react';
 import { api } from '@/api/client';
 import { formatPrice } from '@/lib/format-price';
+import { getVisibleMenu } from '@/lib/menu.mjs';
 
 export default function PDFGenerator({ menu }) {
   const [error, setError] = useState('');
@@ -40,7 +41,7 @@ export default function PDFGenerator({ menu }) {
     yPosition += 5;
 
     // Sections
-    const activeSections = menu.sections.filter(section => section.isActive);
+    const activeSections = getVisibleMenu(menu).sections;
     
     for (const section of activeSections) {
       // Check if we need a new page
@@ -63,15 +64,24 @@ export default function PDFGenerator({ menu }) {
       }
 
       // Dishes
-      for (const dish of section.items.filter(item => item.isActive)) {
+      for (const dish of section.items) {
+          const unavailable = dish.isActive === false;
           const imageHeight = dish.image ? 25 : 0;
-          const dishHeight = imageHeight + 20; // Espacio estimado para el plato completo
+          const dishHeight = imageHeight + 20 + (unavailable ? 7 : 0); // Espacio estimado para el plato completo
 
           if (yPosition + dishHeight > 270) {
             doc.addPage();
             yPosition = 20;
           }
 
+          if (unavailable) {
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(80, 80, 80);
+            doc.text('No disponible', 25, yPosition);
+            yPosition += 7;
+          }
+          doc.setTextColor(unavailable ? 100 : 0);
           let currentY = yPosition;
 
           // Imagen del plato (si existe)
@@ -86,6 +96,11 @@ export default function PDFGenerator({ menu }) {
               canvas.width = img.width;
               canvas.height = img.height;
               const ctx = canvas.getContext('2d');
+              if (unavailable) {
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.filter = 'grayscale(1) opacity(55%)';
+              }
               ctx.drawImage(img, 0, 0);
               const imgData = canvas.toDataURL('image/jpeg', 0.8);
               
@@ -118,9 +133,9 @@ export default function PDFGenerator({ menu }) {
               // Discount
               if (dish.discount > 0) {
                 doc.setFontSize(8);
-                doc.setTextColor(220, 38, 38);
+                doc.setTextColor(...(unavailable ? [100, 100, 100] : [220, 38, 38]));
                 doc.text(`-${dish.discount}% descuento`, 58, currentY);
-                doc.setTextColor(0, 0, 0);
+                doc.setTextColor(unavailable ? 100 : 0);
                 currentY += 4;
               }
 
@@ -150,9 +165,9 @@ export default function PDFGenerator({ menu }) {
 
               if (dish.discount > 0) {
                 doc.setFontSize(9);
-                doc.setTextColor(220, 38, 38);
+                doc.setTextColor(...(unavailable ? [100, 100, 100] : [220, 38, 38]));
                 doc.text(`-${dish.discount}% descuento`, 25, yPosition);
-                doc.setTextColor(0, 0, 0);
+                doc.setTextColor(unavailable ? 100 : 0);
                 yPosition += 4;
               }
 
@@ -184,14 +199,15 @@ export default function PDFGenerator({ menu }) {
             // Discount
             if (dish.discount > 0) {
               doc.setFontSize(9);
-              doc.setTextColor(220, 38, 38);
+              doc.setTextColor(...(unavailable ? [100, 100, 100] : [220, 38, 38]));
               doc.text(`-${dish.discount}% descuento`, 25, yPosition);
-              doc.setTextColor(0, 0, 0);
+              doc.setTextColor(unavailable ? 100 : 0);
               yPosition += 4;
             }
 
             yPosition += 4;
           }
+          doc.setTextColor(0, 0, 0);
         }
 
         yPosition += 5;

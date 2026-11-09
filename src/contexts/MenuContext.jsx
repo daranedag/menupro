@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import * as menusApi from '../api/menus';
 import { useAuth } from './AuthContext';
+import { dishStatusFields } from '@/lib/menu.mjs';
 
 const MenuContext = createContext(null);
 export function useMenu() {
@@ -42,10 +43,10 @@ export function MenuProvider({ children }) {
   const toggleMenuStatus = id => updateMenu(id, { isActive: !menus.find(m => m.id === id)?.isActive });
   const toggleMenuVisibility = id => updateMenu(id, { isVisible: !menus.find(m => m.id === id)?.isVisible });
   const toggleSectionStatus = (menu, id) => updateSection(menu, id, { isActive: !menus.find(m => m.id === menu)?.sections.find(s => s.id === id)?.isActive });
-  const toggleDishStatus = (menu, section, id) => updateDish(menu, section, id, { isActive: !menus.find(m => m.id === menu)?.sections.find(s => s.id === section)?.items.find(i => i.id === id)?.isActive });
+  const setDishStatus = (menu, section, id, status) => updateDish(menu, section, id, dishStatusFields(status));
   return <MenuContext.Provider value={{ menus, isLoading, error, refreshMenus, createMenu, updateMenu, deleteMenu, publishMenu,
     toggleMenuStatus, toggleMenuVisibility, createSection, updateSection, deleteSection, toggleSectionStatus,
-    createDish, updateDish, deleteDish, toggleDishStatus,
+    createDish, updateDish, deleteDish, setDishStatus,
     reorderSections: (id, sections) => run(() => menusApi.reorderSectionsApi(id, sections)),
     reorderDishes: (_menu, id, items) => run(() => menusApi.reorderSectionItems(id, items)) }}>
     {error && <div role="alert" className="fixed bottom-4 left-4 right-4 z-50 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800 shadow-lg">{error}<button className="float-right ml-4" onClick={() => setError(null)} aria-label="Cerrar aviso">✕</button></div>}

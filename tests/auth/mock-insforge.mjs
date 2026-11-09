@@ -10,6 +10,7 @@ let profile = null;
 let initFailure = false;
 let exchangeCalls = 0;
 let passwordChanged = false;
+let publicMenu = null;
 
 const server = createServer(async (request, response) => {
   const url = new URL(request.url, 'http://127.0.0.1:3101');
@@ -24,6 +25,7 @@ const server = createServer(async (request, response) => {
   if (url.pathname === '/health') return send(200, { ok: true });
   if (url.pathname === '/__test/reset') {
     challenges.clear(); profile = null; initFailure = input?.initFailure ?? false; exchangeCalls = 0; passwordChanged = false;
+    publicMenu = input?.publicMenu ?? null;
     return send(200, { ok: true });
   }
   if (url.pathname === '/__test/state') return send(200, { profile, exchangeCalls, passwordChanged });
@@ -55,6 +57,7 @@ const server = createServer(async (request, response) => {
   }
   if (url.pathname === '/api/database/records/menupro_restaurants') return send(200, []);
   if (url.pathname === '/api/database/rpc/menupro_rate_limit') return send(200, true);
+  if (url.pathname === '/api/database/rpc/menupro_public_menu') return send(200, publicMenu);
   if (url.pathname === '/api/database/rpc/menupro_claim_notifications') return send(200, []);
   if (url.pathname === '/api/database/rpc/menupro_claim_fiscal_delivery') return send(200, null);
   if (url.pathname === '/api/database/rpc/menupro_panel_session') return send(200, {

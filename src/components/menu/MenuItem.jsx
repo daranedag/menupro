@@ -1,16 +1,18 @@
 'use client';
-import { Flame, Clock3, Leaf } from 'lucide-react';
+import { Flame, Clock3, Leaf, CircleOff } from 'lucide-react';
 import Badge from '../ui/Badge';
 import DishTag from './DishTag';
 import { formatPrice } from '@/lib/format-price';
 
 export default function MenuItem({ item }) {
   const hasDiscount = Number(item.discount) > 0;
+  const unavailable = item.isActive === false;
   const price = Number(item.price) || 0;
   const finalPrice = hasDiscount ? price * (1 - Number(item.discount) / 100) : price;
-  return <article className="menu-item">
+  return <article className={`menu-item${unavailable ? ' menu-item-unavailable' : ''}`}>
     {item.image && <img src={item.image} alt={item.name} className="menu-item-image" loading="lazy" />}
     <div className="menu-item-content"><div className="menu-item-heading"><h3>{item.name}</h3><div className="menu-item-price">{hasDiscount && <del>{formatPrice(price)}</del>}{formatPrice(finalPrice)}</div></div>
+      {unavailable && <p className="menu-item-availability"><CircleOff size={14} aria-hidden="true" />No disponible</p>}
       {(hasDiscount || item.tags?.length > 0) && <div className="mt-2 flex flex-wrap gap-1.5">{hasDiscount && <Badge variant="discount" size="sm">-{item.discount}%</Badge>}{item.tags?.map((tag, index) => <DishTag key={tag.label + index} variant={tag.variant}><span className="min-w-0 break-words">{tag.label}</span></DishTag>)}</div>}
       {item.description && <p className="menu-item-description">{item.description}</p>}{item.longDescription && <p className="menu-item-description">{item.longDescription}</p>}
       {(item.calories || item.prepTime || item.isVegetarian || item.isSpicy) && <div className="menu-item-details">

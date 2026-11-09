@@ -7,7 +7,7 @@ import { useParams } from 'next/navigation';
 import { useMenu } from '../../contexts/MenuContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button, Badge, Card, Modal, Spinner } from '../../components/ui';
-import { Plus, GripVertical, Edit, Pause, Play, Trash2, Power, PowerOff, Eye } from 'lucide-react';
+import { Plus, GripVertical, Edit, Pause, Play, Trash2, Eye } from 'lucide-react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { MenuPreview, PDFGenerator, QRGenerator, MobilePreview } from '../../components/dashboard';
 import {
@@ -29,6 +29,8 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { formatPrice } from '@/lib/format-price';
 import GuidedTour from '@/components/dashboard/GuidedTour';
+import DishStatusSelect from '@/components/dashboard/DishStatusSelect';
+import { getDishStatus } from '@/lib/menu.mjs';
 
 // Componente para Sección Sortable
 function SortableSection({ section, menuId, onDeleteSection, onToggleSection, onDeleteDish }) {
@@ -172,7 +174,9 @@ function DishList({ dishes, menuId, sectionId, onDeleteDish }) {
 
 // Componente para Plato Sortable
 function SortableDish({ dish, menuId, sectionId, onDelete }) {
-  const { toggleDishStatus } = useMenu();
+  const { setDishStatus } = useMenu();
+  const [savingStatus, setSavingStatus] = useState(false);
+  const status = getDishStatus(dish);
   const { theme } = useTheme();
   const isDark = theme.mode === 'dark';
   const {
@@ -225,8 +229,8 @@ function SortableDish({ dish, menuId, sectionId, onDelete }) {
           {dish.discount > 0 && (
             <Badge variant="discount" size="sm">-{dish.discount}%</Badge>
           )}
-          <Badge variant={dish.isActive ? 'success' : 'default'} size="sm">
-            {dish.isActive ? 'Activo' : 'Inactivo'}
+          <Badge variant={status === 'available' ? 'success' : status === 'unavailable' ? 'warning' : 'default'} size="sm">
+            {status === 'available' ? 'Disponible' : status === 'unavailable' ? 'No disponible' : 'Oculto'}
           </Badge>
         </div>
         <p className={`text-sm line-clamp-1 ${isDark ? 'text-muted' : 'text-muted'}`}>{dish.description}</p>
@@ -245,20 +249,19 @@ function SortableDish({ dish, menuId, sectionId, onDelete }) {
           <p className="text-lg font-semibold text-ink">{formatPrice(dish.price)}</p>
         )}
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Link href={`/app/dashboard/menus/${menuId}/sections/${sectionId}/dishes/${dish.id}`}>
           <Button variant="ghost" size="sm" title="Editar">
             <Edit size={16} />
           </Button>
         </Link>
-        <Button
-          variant={dish.isActive ? 'warning' : 'success'}
-          size="sm"
-          onClick={() => toggleDishStatus(menuId, sectionId, dish.id)}
-          title={dish.isActive ? 'Desactivar plato' : 'Activar plato'}
-        >
-          {dish.isActive ? <PowerOff size={16} /> : <Power size={16} />}
-        </Button>
+        <DishStatusSelect value={status} label={`Estado de ${dish.name}`} disabled={savingStatus}
+          onChange={async nextStatus => {
+            setSavingStatus(true);
+            try { await setDishStatus(menuId, sectionId, dish.id, nextStatus); }
+            catch { /* The shared provider displays the save error. */ }
+            finally { setSavingStatus(false); }
+          }} />
         <Button
           variant="danger"
           size="sm"
@@ -411,6 +414,7 @@ function MenuEditor() {
         </div>
 
         {/* Sections List with Drag & Drop */}
+        <p className="mb-4 text-sm text-muted">Los platos «No disponibles» siguen visibles en la carta con un aviso. Los platos «Ocultos» no aparecen para tus clientes.</p>
         <div className="space-y-4">
           {menu.sections && menu.sections.length > 0 ? (
             <DndContext
