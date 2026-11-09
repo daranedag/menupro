@@ -1,5 +1,5 @@
 // Auth uses the repository's existing credential helper. Never log its output.
-// GitHub receives only a monitor-scoped token.
+// GitHub receives the monitor token and the private scheduled-worker secret.
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { createHmac } from 'node:crypto';
@@ -29,13 +29,14 @@ if (process.argv.includes('--inspect')) {
   const checkout = await api('/repos/actions/checkout/git/ref/tags/v6');
   console.log(JSON.stringify({ repository: metadata.full_name, private: metadata.private, canConfigureSecrets: Boolean(publicKey.key_id), checkoutSha: checkout.object.sha }));
 } else {
-  const project = JSON.parse(readFileSync('.insforge/project.json','utf8'));
-  if (project.project_id !== '1f6ed00c-76be-4883-92e6-ca3dabee7e68') throw Error('Configura el monitor después de volver al proyecto principal.');
+  const project = JSON.parse(readFileSync('.neon','utf8'));
+  if (project.projectId !== 'bitter-heart-68907011' || project.branch !== 'production') throw Error('Configura el monitor contra production de Neon.');
   const env = Object.fromEntries(readFileSync('.env.local','utf8').split(/\r?\n/).filter(line => /^[A-Z_]+=/.test(line)).map(line => { const i = line.indexOf('='); return [line.slice(0,i),line.slice(i+1)]; }));
-  if (env.NEXT_PUBLIC_INSFORGE_URL !== project.oss_host || env.MENUPRO_WORKER_SECRET?.length < 40) throw Error('Configuración principal incompleta.');
+  if (!env.DATABASE_URL || env.MENUPRO_WORKER_SECRET?.length < 40) throw Error('Configuración principal incompleta.');
   await sodium.ready;
   const secrets = {
     MENUPRO_MONITOR_TOKEN: createHmac('sha256',env.MENUPRO_WORKER_SECRET).update('menupro/operations-monitor/v1').digest('hex'),
+    MENUPRO_WORKER_SECRET: env.MENUPRO_WORKER_SECRET,
   };
   for (const [name,value] of Object.entries(secrets)) {
     const encrypted = sodium.crypto_box_seal(Buffer.from(value),Buffer.from(publicKey.key,'base64'));

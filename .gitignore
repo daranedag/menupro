@@ -28,3 +28,12 @@ test-results/
 .vercel/
 artifacts/
 .menupro-operations-state.json
+.neon
+
+# Database backups contain private data and credentials
+*.sql.gz
+*.dump
+*.backup
+
+.env*
+!.env.example

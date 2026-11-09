@@ -1,8 +1,11 @@
-import { createRefreshAuthRouter } from '@insforge/sdk/ssr';
-import { assertSameOrigin, fail } from '@/server/http';
+import { auth } from '@/server/auth';
+import { assertSameOrigin, fail, HttpError, respond } from '@/server/http';
 
-const router = createRefreshAuthRouter();
 export async function POST(request: Request) {
-  try { assertSameOrigin(request); return await router.POST(request); }
-  catch (error) { return fail(error); }
+  try {
+    assertSameOrigin(request);
+    const { data, error } = await auth.getSession();
+    if (error || !data?.user) throw new HttpError('Debes iniciar sesión.', 401);
+    return respond({ refreshed: true });
+  } catch (error) { return fail(error); }
 }

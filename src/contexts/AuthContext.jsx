@@ -19,6 +19,7 @@ export function AuthProvider({ children }) {
   useEffect(() => { loadSession(); }, [loadSession]);
   const login = async (email, password) => {
     const { data } = await api.post('/api/auth/login', { email, password });
+    if (data.requiresEmailConfirmation) return data;
     setUser(data.user); return data.user;
   };
   const register = async input => {

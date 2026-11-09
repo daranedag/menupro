@@ -4,32 +4,22 @@
 
 - Use pnpm exclusively for dependencies, scripts, and package execution. Never use npm, npx, yarn, or Bun.
 - This directory is the single Next.js application: landing, panel, and BFF.
-- Every application table, view, function, index, and policy must use the `menupro_` prefix. Do not change unrelated objects in DieGui Dev.
-- Use user-scoped InsForge clients and RLS. Keep all credentials in ignored local configuration.
+- Every application table, view, function, index, and policy must use the `menupro_` prefix. Do not change objects in the former DieGui Dev backend.
+- Use user-scoped Neon queries and RLS. Keep all credentials in ignored local configuration.
 - Keep SQL migrations under `migrations/` and apply them with `pnpm db:migrate`.
 - Read version-matched Next.js documentation under `node_modules/next/dist/docs/` before changing framework behavior.
 
-<!-- INSFORGE:START -->
-## InsForge backend
+## Neon backend
 
-This project uses [InsForge](https://insforge.dev): an all-in-one, open-source Postgres-based backend (BaaS) that gives this app a database, authentication, file storage, edge functions, realtime, an AI model gateway, and payments through one platform.
-
-- **Project:** **DieGui Dev** (API base `https://556adz76.us-east.insforge.app`)
-- **Skills:** these InsForge skills are installed for supported coding agents. Reach for them before implementing any InsForge feature instead of guessing the API:
-  - `insforge`: app code with the `@insforge/sdk` client (database CRUD, auth, storage, edge functions, realtime, AI, email, and Stripe payments).
-  - `insforge-cli`: backend and infrastructure via the `insforge` CLI (projects, SQL, migrations, RLS policies, storage buckets, functions, secrets, payment setup, schedules, deploys).
-  - `insforge-debug`: diagnosing failures (SDK/HTTP errors, RLS denials, auth and OAuth issues) and running security or performance audits.
-  - `insforge-integrations`: wiring external auth providers (Clerk, Auth0, WorkOS, Better Auth, etc.) for JWT-based RLS, or the OKX x402 payment facilitator.
-  - `find-skills`: discovering additional skills on demand.
-- **Credentials:** app code reads keys from `.env.local`; the CLI reads `.insforge/project.json`. Never hardcode or commit keys.
-
-Key patterns:
-
-- Database inserts take an array: `insert([{ ... }])`.
-- Reference users with `auth.users(id)`; use `auth.uid()` in RLS policies.
-- For storage uploads, persist both the returned `url` and `key`.
-<!-- INSFORGE:END -->
-
+- Project: bitter-heart-68907011, organization org-snowy-haze-69666506. The app uses the production branch.
+- PostgreSQL, managed Neon Auth and private fiscal PDFs use Neon. InsForge is no longer a runtime dependency.
+- Credentials live only in ignored local configuration or hosting secrets. Never print connection strings, cookies or keys.
+- Use the pooled DATABASE_URL for the BFF and DATABASE_URL_UNPOOLED for migrations.
+- The BFF validates Neon Auth sessions, maps identities to menupro_users and runs every application query in a transaction with SET LOCAL ROLE and a local user ID. Never run application CRUD as the table owner or trust a user ID from a request.
+- Keep row permissions and SQL grants. Runtime roles are menupro_anon and menupro_authenticated, with no BYPASSRLS.
+- Historical InsForge migrations are kept intact; scripts/neon-migrations.mjs maps their platform references. Add future SQL under migrations/neon/, then run pnpm db:migrate.
+- Test schema and permissions on an isolated Neon branch before production. The auth/browser suite refuses any branch other than menupro-migration-validation.
+- Never restore a full InsForge platform dump into this app's database. Only explicitly requested MenuPro data belongs here.
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know

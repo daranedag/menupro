@@ -1,7 +1,7 @@
 import 'server-only';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
-import { createInsForge } from './insforge';
+import { createUserDatabase } from './database';
 import { check, HttpError, respond } from './http';
 import { handleBillingApi, paymentReadiness } from './billing';
 import { deliverInvitation } from './email';
@@ -9,7 +9,7 @@ import { uploadFiscalPdf, sendFiscalPdf, downloadFiscalPdf } from './fiscal';
 import { commercialSettings } from './commercial';
 import { adminOperations, checkOperations } from './operations';
 
-export type BusinessClient = Awaited<ReturnType<typeof createInsForge>>;
+export type BusinessClient = Awaited<ReturnType<typeof createUserDatabase>>;
 type Restaurant = { id: string; business_id: string; name: string; slug: string; archived_at: string | null; [key: string]: unknown };
 export type BusinessContext = {
   business_id: string; business_role: 'owner' | 'manager' | 'editor'; is_admin: boolean;
@@ -156,7 +156,7 @@ export async function handleBusinessApi(request: Request, path: string[], client
           .select('business_id,plan_id,status,billing_cycle,provider_subscription_id,provider_status,cancel_at_period_end,trial_ends_at,current_period_end')
           .in('business_id', rows.map((row: { id: string }) => row.id));
         check(subscriptions.error);
-        const byBusiness = new Map(subscriptions.data?.map(subscription => [subscription.business_id, subscription]));
+        const byBusiness = new Map(subscriptions.data?.map((subscription: { business_id: string; [key: string]: unknown }) => [subscription.business_id, subscription]));
         for (const row of rows) row.subscription = byBusiness.get(row.id) ?? null;
       }
       return respond({ rows: rows.slice(0, 50), hasMore: rows.length > 50 });

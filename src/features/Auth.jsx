@@ -143,7 +143,6 @@ function Auth() {
               </svg>
               {isGoogleLoading ? 'Conectando con Google…' : 'Continuar con Google'}
             </button>
-            <p className="mt-3 text-center text-xs leading-relaxed text-muted">Utilizamos las apps de InsForge e InstaCloud para gestionar los inicios de sesión.</p>
             <div className="my-6 flex items-center gap-3 text-xs text-muted"><span className="h-px flex-1 bg-canvas" /><span>o continúa con tu correo</span><span className="h-px flex-1 bg-canvas" /></div>
 
             <form onSubmit={handleSubmit} className="space-y-4">

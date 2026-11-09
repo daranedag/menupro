@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import type { BusinessClient, BusinessContext } from './business';
 import { readJson } from './business';
-import { createPublicInsForge } from './insforge';
+import { createPublicDatabase } from './database';
 import { check, HttpError, respond } from './http';
 import { escapeHtml, recurringGross, safeCheckoutUrl } from '@/lib/billing.mjs';
 import { invitationEmailReady } from './email';
@@ -62,7 +62,7 @@ export async function mercadoPago(path: string, method = 'GET', data?: unknown, 
 
 export async function workerRpc(name: string, args: Record<string, unknown> = {}) {
   if (!process.env.MENUPRO_WORKER_SECRET) throw new HttpError('El servicio de operaciones aún no está configurado.', 503);
-  const { data, error } = await createPublicInsForge().database.rpc(name, { p_secret: process.env.MENUPRO_WORKER_SECRET, ...args });
+  const { data, error } = await createPublicDatabase().database.rpc(name, { p_secret: process.env.MENUPRO_WORKER_SECRET, ...args });
   check(error); return data;
 }
 

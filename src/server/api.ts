@@ -1,9 +1,9 @@
 import 'server-only';
 import { randomUUID } from 'node:crypto';
 import { cookies } from 'next/headers';
-import { createAuthActions } from '@insforge/sdk/ssr';
+import { auth, emailOtp } from './auth';
 import { z } from 'zod';
-import { createInsForge, createPublicInsForge } from './insforge';
+import { createUserDatabase, createPublicDatabase, createSignedInDatabase } from './database';
 import { assertSameOrigin, check, fail, HttpError, respond } from './http';
 import { credentials, restaurantSchema, menuSchema, sectionSchema, dishSchema, menuWrite, sectionWrite, dishWrite } from './schemas';
 import { slugify, toMenu, toSection, toDish } from '@/lib/menu.mjs';
@@ -11,7 +11,7 @@ import { businessSession, handleBusinessApi } from './business';
 import { enforceRequestLimit } from './security';
 import { handleImagesApi } from './images';
 
-type Client = Awaited<ReturnType<typeof createInsForge>>;
+type Client = Awaited<ReturnType<typeof createUserDatabase>>;
 const restaurantColumns = 'id,business_id,name,slug,phone,address,city,unit,no_physical_location,currency,theme,active,archived_at';
 const itemColumns = 'id,section_id,name,description,long_description,price,discount,image_url,image_asset_id,tags,calories,prep_time,is_vegetarian,is_spicy,available,visible,order_index';
 const sectionColumns = 'id,menu_id,name,description,icon,active,visible,order_index';
@@ -58,44 +58,56 @@ export async function handleApi(request: Request, context: { params: Promise<{ p
     const { path } = await context.params;
     const method = request.method;
     if (method !== 'GET') assertSameOrigin(request);
-    if (path.join('/') === 'health' && method === 'GET') return respond({ status: 'ok', application: 'MenuPro' });
-    const client = await createInsForge();
+    if (path.join('/') === 'health' && method === 'GET') {
+      const result = await createPublicDatabase().database.from('menupro_commercial_settings').select('id').eq('id',true).single();
+      if (result.error) throw new HttpError('La base de datos no está disponible.',503);
+      return respond({ status: 'ok', application: 'MenuPro', database: 'neon' });
+    }
 
     if (path[0] === 'auth' && path.length === 2 && ['login', 'register', 'verify', 'logout'].includes(path[1]) && method === 'POST') {
       if (path[1] !== 'logout') await enforceRequestLimit(request, 'auth_' + path[1], path[1] === 'login' ? 100 : 20);
-      const auth = createAuthActions({ cookies: await cookies() });
       if (path[1] === 'logout') {
         const result = await auth.signOut();
-        if (result.error) throw new HttpError('No se pudo cerrar la sesión.', result.error.statusCode ?? 400);
+        if (result.error) throw new HttpError('No se pudo cerrar la sesión.', result.error.status ?? 400);
+        const jar = await cookies();
+        jar.delete('menupro_business'); jar.delete('menupro_restaurant');
         return respond(null);
       }
       if (path[1] === 'verify') {
         const input = z.object({ email: z.string().email(), otp: z.string().regex(/^\d{6}$/) }).strict().parse(await body(request));
-        const { data, error } = await auth.verifyEmail(input);
-        if (error) throw new HttpError(error.message ?? 'Código inválido.', error.statusCode ?? 400);
-        return respond({ verified: true, user: data?.user ? { id: data.user.id, email: data.user.email } : null });
+        const { error } = await emailOtp.verifyEmail(input);
+        if (error) throw new HttpError('El código no es válido o ya venció.', error.status ?? 400);
+        return respond({ verified: true });
       }
       const input = (path[1] === 'register' ? credentials : credentials.extend({ password: z.string().min(1).max(128) })).parse(await body(request));
       const result = path[1] === 'register'
-        ? await auth.signUp({ email: input.email, password: input.password, name: input.name,
-          redirectTo: new URL('/app/login?verified=true', request.url).toString() })
-        : await auth.signInWithPassword({ email: input.email, password: input.password });
-      if (result.error) throw new HttpError(result.error.message ?? 'No se pudo iniciar sesión.', result.error.statusCode ?? 400);
-      const safe = result.data as { user?: { id: string; email?: string }; requireEmailVerification?: boolean; verifyEmailMethod?: string } | null;
-      if (safe?.requireEmailVerification) return respond({ requiresEmailConfirmation: true, verifyEmailMethod: safe.verifyEmailMethod });
-      if (!safe?.user) throw new HttpError('No se pudo iniciar sesión.', 401);
-      const signedClient = await createInsForge();
-      return respond({ user: await session(signedClient, safe.user) });
+        ? await auth.signUp.email({ email: input.email, password: input.password, name: input.name || input.email.split('@')[0] })
+        : await auth.signIn.email({ email: input.email, password: input.password });
+      if (result.error) {
+        const code = result.error.code;
+        if (code === 'EMAIL_NOT_VERIFIED') {
+          await emailOtp.sendVerificationOtp({ email: input.email, type: 'email-verification' });
+          return respond({ requiresEmailConfirmation: true, verifyEmailMethod: 'code' });
+        }
+        throw new HttpError(path[1] === 'login' ? 'Correo o contraseña incorrectos.' : 'No se pudo crear la cuenta. Comprueba el correo y la contraseña.', result.error.status ?? 400);
+      }
+      if (result.data?.user && !result.data.user.emailVerified) return respond({ requiresEmailConfirmation: true, verifyEmailMethod: 'code' });
+      if (!result.data?.user) throw new HttpError('No se pudo iniciar sesión.', 401);
+      const signedClient = await createSignedInDatabase(result.data.user);
+      const signed = await signedClient.auth.getCurrentUser();
+      if (!signed.data.user) throw new HttpError('Inicia sesión con tu nueva cuenta.', 401);
+      return respond({ user: await session(signedClient, signed.data.user) });
     }
 
     if (path[0] === 'menus' && path[1] === 'public' && path.length === 4 && method === 'GET') {
-      const { data, error } = await createPublicInsForge().database.rpc('menupro_public_menu', { p_restaurant_slug: path[2], p_menu_slug: path[3] });
+      const { data, error } = await createPublicDatabase().database.rpc('menupro_public_menu', { p_restaurant_slug: path[2], p_menu_slug: path[3] });
       check(error);
       if (!data) throw new HttpError('Carta no encontrada o no publicada.', 404);
       if (data.unavailable) return respond({ unavailable: true });
       return respond({ restaurant: data.restaurant, menu: toMenu(data.menu) });
     }
 
+    const client = await createUserDatabase();
     const { data: userData, error: authError } = await client.auth.getCurrentUser();
     if (authError || !userData?.user) throw new HttpError('Debes iniciar sesión.', 401);
     const user = userData.user;

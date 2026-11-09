@@ -1,6 +1,6 @@
 # MenuPro
 
-Aplicación única de Next.js para la landing, el panel de restaurantes, la carta pública y el BFF. Usa **pnpm exclusivamente** e InsForge como base de datos y autenticación.
+Aplicación única de Next.js para la landing, el panel de restaurantes, la carta pública y el BFF. Usa **pnpm exclusivamente** y Neon como base de datos y autenticación.
 
 ## Desarrollo
 
@@ -16,7 +16,7 @@ Abre `http://localhost:3000`. La configuración local está en `.env.local` y no
 ## Funcionalidad básica
 
 - Landing con acceso al panel desde escritorio y móvil.
-- Registro e inicio de sesión con Google o correo, verificación por correo, renovación de sesión y logout con InsForge.
+- Registro e inicio de sesión con Google o correo, verificación por correo, renovación de sesión y logout con Neon Auth.
 - Restaurantes y selección del restaurante activo.
 - Crear, editar y eliminar cartas, secciones y platos; ordenar secciones y platos.
 - Publicar/despublicar y pausar/ocultar contenido.
@@ -37,18 +37,18 @@ src/app/         Rutas Next.js, landing, panel y endpoints /api
 src/components/ Interfaz compartida y componentes reutilizados
 src/contexts/   Estado del panel, sesión y apariencia
 src/features/   Pantallas del panel
-src/server/     BFF, validación y clientes InsForge del servidor
+src/server/     BFF, validación y clientes Neon del servidor
 src/lib/        Utilidades compartidas
 migrations/     Migraciones SQL versionadas
 public/         Recursos de la landing existente
 tests/          Pruebas de datos, permisos y navegador
 ```
 
-## InsForge y migraciones
+## Neon y migraciones
 
-El destino es **DieGui Dev**. Todos los objetos propios usan el prefijo `menupro_`. La aplicación utiliza clientes con permisos del usuario y RLS; no necesita una clave administrativa en Vercel.
+El proyecto es **bitter-heart-68907011**, organización **org-snowy-haze-69666506**, rama **production**. Todos los objetos propios usan el prefijo menupro_. La aplicación usa PostgreSQL directamente desde el BFF, con consultas parametrizadas, roles restringidos y RLS por usuario; la conexión nunca llega al navegador.
 
-El contenido usa `menupro_profiles`, `menupro_restaurants`, `menupro_menus`, `menupro_menu_sections` y `menupro_menu_items`. La propiedad y el acceso se resuelven con `menupro_businesses`, `menupro_memberships` y `menupro_subscriptions`; las tablas comerciales, invitaciones, registros contra abuso y auditoría también usan el prefijo `menupro_`.
+`DATABASE_URL` contiene la conexión agrupada de la app y `DATABASE_URL_UNPOOLED` la conexión directa para migraciones. `NEON_AUTH_BASE_URL` y `NEON_AUTH_COOKIE_SECRET` configuran el acceso de usuarios. Todos son privados y se guardan en .env.local o en el alojamiento.
 
 ```sh
 pnpm db:status
@@ -56,23 +56,15 @@ pnpm db:new nombre-de-la-migracion
 pnpm db:migrate
 ```
 
-La CLI lee `.insforge/project.json`, que contiene credenciales privadas y está ignorado. Verifica siempre el proyecto vinculado con `pnpm exec insforge current` antes de aplicar cambios. Para cambios de permisos o esquema sobre datos existentes, prueba primero en una rama del backend.
+El ejecutor conserva el historial SQL original y adapta sus referencias de plataforma a objetos propios de MenuPro. Las migraciones nuevas se guardan en migrations/neon/. Se aplican con transacción, bloqueo y verificación de checksums. Primero deben probarse en una rama aislada.
 
-La carta pública accede exclusivamente a `menupro_public_menu`, que devuelve contenido publicado y omite el identificador del propietario. La vigencia y el cupo del restaurante se comprueban al consultar, incluso si el mantenimiento horario no se ejecutó. Las operaciones de edición utilizan RLS y no permiten cambiar la propiedad ni mover registros a otro restaurante mediante un PATCH. Las transferencias de propiedad se realizan atómicamente entre integrantes del negocio.
+El 9 de noviembre de 2026 se autorizó comenzar con datos nuevos en Neon: el respaldo de abril no contiene tablas de MenuPro y no se importan sus usuarios ni sus secretos. Las cuentas deben registrarse nuevamente. Se conservan el catálogo de planes, los permisos, las reglas comerciales y la cuenta administrativa configurada en las migraciones.
 
-MenuPro comienza vacío por decisión del propietario. No se trasladan usuarios ni datos del Supabase anterior; sus carpetas originales se conservan.
+El acceso con Google y correo lo gestiona Neon Auth. Se exige verificar el correo con código antes de activar una demo. El SDK gestiona las cookies HttpOnly y el retorno de Google; el middleware completa el acceso en /app/dashboard. Los dominios de la aplicación deben estar autorizados en Neon. Un proveedor Google propio permite usar la marca de MenuPro en la pantalla de consentimiento.
 
-El MCP oficial de InsForge está registrado en la configuración local de Codex para DieGui Dev y se ejecuta con `pnpm dlx @insforge/mcp@1.2.11`. Es posible que Codex necesite recargar la conexión MCP para mostrar sus herramientas. No se guardan sus claves en el repositorio.
+Los PDFs fiscales privados se guardan en Neon con el límite existente de 2 MB y permisos de administrador/propietario. La biblioteca de imágenes sigue usando su proveedor externo.
 
-## Acceso con Google
-
-El botón **Continuar con Google** está disponible tanto en login como en registro. InsForge crea la cuenta en el primer acceso y reutiliza su identidad en los siguientes. Next inicia OAuth desde `POST /api/auth/google`, guarda el verificador PKCE en una cookie HttpOnly de diez minutos y recibe el retorno en `GET /api/auth/callback`. El SDK intercambia el código en el servidor y establece la sesión, manteniendo el token de renovación en una cookie HttpOnly. El destino final es `/app/dashboard`.
-
-Google ya está habilitado en DieGui Dev. Actualmente usa el proveedor compartido de InsForge: su pantalla de Google muestra **InstaCloud**. Para mostrar **MenuPro**, configura un cliente OAuth propio en **Auth Methods → Google** de InsForge y utiliza la dirección de callback que indique el dashboard de InsForge. No uses el callback de Next como callback de Google: Next recibe el retorno posterior de InsForge.
-
-Configura `APP_URL` con el origen exacto de la aplicación (`http://localhost:3000` en desarrollo). En producción, autoriza `<APP_URL>/api/auth/callback` en las direcciones de retorno de InsForge, conservando las direcciones que utilicen otras aplicaciones del backend compartido. No se necesitan un ID ni un secreto de Google en el frontend o en las variables de Next.
-
-Las cuentas nuevas de MenuPro toman el nombre del perfil de Google; los nombres ya guardados por el usuario se conservan. Si se cancela el acceso, falta el verificador o el código no es válido, se limpia la cookie temporal y se vuelve al login con un mensaje para reintentar.
+Más detalles y operación: [docs/neon.md](docs/neon.md).
 
 ## Verificación
 
@@ -83,17 +75,14 @@ pnpm test:auth
 pnpm run build
 ```
 
-Las pruebas de integración están en `tests/integration`. Crean cuentas temporales y deben ejecutarse **solo contra una rama aislada** con verificación de correo desactivada, nunca contra el backend compartido. Requieren la aplicación iniciada en `http://localhost:3000` y Chrome instalado:
+La suite de autenticación actual usa una rama aislada de Neon, correo y cobros desactivados, y Chrome. Requiere .env.neon-validation.local con NEON_BRANCH=menupro-migration-validation. Las pruebas de permisos usan una transacción que se revierte al terminar. La suite del navegador crea identidades sintéticas solo en esa rama.
 
 ```sh
-pnpm exec playwright test
+pnpm test:db
+pnpm test:auth
 ```
 
-Los helpers de pruebas verifican las identidades sintéticas en esa rama y preparan fechas o estados para comprobar vencimientos, pagos y retención. Sus controles rechazan el proyecto padre. No ejecutan cobros de Mercado Pago ni envían correos reales. Las pruebas de recuperación de contraseña utilizan un servicio local simulado.
-
-Se usa la alternativa oficial Webpack para desarrollo y compilación: el compilador Turbopack de esta versión falló al iniciar sus procesos auxiliares en el entorno Windows de validación.
-
-`pnpm test:auth` es una suite independiente: inicia Next en `http://localhost:3100` y un servicio InsForge simulado en `127.0.0.1:3101`. Comprueba el inicio, PKCE, cookies de sesión, perfil, cancelación, códigos inválidos y rechazo de solicitudes de otro origen; no usa Chrome ni crea usuarios reales. Detén otros servidores de desarrollo de este directorio antes de ejecutarla. La entrada completa con una cuenta de Google real se comprueba manualmente desde `/app/login`.
+Las suites anteriores de tests/auth y tests/integration y sus helpers de InsForge se conservan como referencia histórica; no son la verificación del backend Neon. Se usa Webpack en desarrollo y compilación.
 
 ## Vercel
 
@@ -115,10 +104,10 @@ Configura estas variables en el proyecto de Vercel:
 | `RESEND_FROM` | Remitente de un dominio verificado en Resend; formato `MenuPro <correo@dominio-verificado>` |
 | `RESEND_REPLY_TO` | Dirección opcional para recibir respuestas, por ejemplo la casilla Gmail del negocio |
 
-Las invitaciones y los recordatorios se envían por la API de Resend. Para activarlos, verifica el dominio remitente en Resend, configura `RESEND_API_KEY` y `RESEND_FROM` como variables privadas en Vercel y cambia `MENUPRO_EMAIL_ENABLED` a `true`. Repite la configuración en `.env.local` para probar localmente. Reconstruye el despliegue después de cambiar las variables. Mientras no se configure Resend, deja el envío en `false`. El horario de InsForge entrega los avisos mediante el endpoint privado de Next; no necesita otra clave de Resend. La configuración SMTP para los correos de autenticación y los pasos de activación están en `docs/correos-resend.md`.
+Las invitaciones y los recordatorios se envían por la API de Resend. Para activarlos, verifica el dominio remitente en Resend, configura `RESEND_API_KEY` y `RESEND_FROM` como variables privadas en Vercel y cambia `MENUPRO_EMAIL_ENABLED` a `true`. Repite la configuración en `.env.local` para probar localmente. Reconstruye el despliegue después de cambiar las variables. Mientras no se configure Resend, deja el envío en `false`. El mantenimiento horario en GitHub Actions llama al endpoint privado de Next y procesa Neon; no depende de InsForge. La configuración SMTP para los correos de autenticación y los pasos de activación están en `docs/correos-resend.md`.
 
-La interfaz confirma si el proveedor aceptó el correo o muestra el enlace para compartirlo si no pudo enviarse. La invitación se conserva aunque Resend falle; aceptarla siempre exige iniciar sesión con el correo verificado del destinatario. Cada envío usa una clave de idempotencia basada en la invitación para evitar duplicados al repetir la misma solicitud al proveedor. Verificación y recuperación siguen usando la autenticación de InsForge; su transporte pasa a Resend al aplicar la configuración SMTP documentada.
+La interfaz confirma si el proveedor aceptó el correo o muestra el enlace para compartirlo si no pudo enviarse. La invitación se conserva aunque Resend falle; aceptarla siempre exige iniciar sesión con el correo verificado del destinatario. Cada envío usa una clave de idempotencia basada en la invitación para evitar duplicados al repetir la misma solicitud al proveedor. Verificación y recuperación usan Neon Auth. Su proveedor SMTP se configura en Neon.
 
-No subas `.env.local`, `.insforge` ni claves administrativas. Los previews también deben apuntar al backend elegido expresamente.
+No subas `.env.local`, `.env.neon-validation.local`, `.insforge`, `.neon` ni credenciales. Los previews también deben apuntar al backend elegido expresamente.
 
 Para completar el cambio de alojamiento, crea un proyecto Vercel desde este directorio/repositorio, configura el dominio y verifica landing → login → panel → publicación → QR. Después desactiva GitHub Pages en el repositorio anterior. Esta migración local no modifica DNS ni desactiva un sitio publicado.
